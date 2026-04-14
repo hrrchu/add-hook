@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Hook — 표현 방식</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f5f7; --surface: #ffffff; --surface2: #f0f0f3;
+            --border: #d4d4d8; --text: #1e1e2e; --text2: #6b7280;
+            --accent: #7c3aed; --accent2: #6d28d9;
+            --blue: #2563eb; --green: #16a34a; --orange: #ea580c; --red: #dc2626;
+        }
+
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Segoe UI', -apple-system, sans-serif; line-height: 1.6;
+        }
+        .container { max-width: 880px; margin: 0 auto; padding: 28px 20px 60px; }
+
+        /* Header */
+        header { text-align: center; margin-bottom: 28px; }
+        header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        header p { color: var(--text2); font-size: 13px; }
+
+        /* Settings */
+        .settings-bar {
+            display: flex; gap: 8px; align-items: center; margin-bottom: 20px;
+            background: var(--surface); padding: 12px 16px;
+            border-radius: 12px; border: 1px solid var(--border);
+        }
+        .settings-bar input[type="password"] {
+            flex: 1; background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none;
+        }
+        .settings-bar input:focus { border-color: var(--accent); }
+        .settings-bar select {
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+            padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; cursor: pointer;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+            padding: 20px 22px; margin-bottom: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-label {
+            font-size: 11px; font-weight: 700; color: var(--text2);
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+        }
+
+        /* Game Grid */
+        .game-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .game-card {
+            background: var(--surface2); border: 2px solid var(--border); border-radius: 8px;
+            padding: 6px 12px; cursor: pointer; transition: all 0.15s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .game-card:hover { border-color: var(--accent2); transform: translateY(-1px); }
+        .game-card.selected { border-color: var(--accent); background: rgba(124,58,237,0.08); }
+        .game-card .g-icon { font-size: 15px; }
+        .game-card .g-name { font-size: 12px; font-weight: 600; }
+
+        /* Campaign */
+        .campaign-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .campaign-pill {
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+            padding: 6px 14px; cursor: pointer; transition: all 0.15s; font-size: 12px;
+        }
+        .campaign-pill:hover { border-color: var(--accent2); }
+        .campaign-pill.selected {
+            border-color: var(--accent); background: rgba(124,58,237,0.08);
+            color: var(--accent2); font-weight: 600;
+        }
+
+        /* Upload */
+        .upload-area {
+            border: 2px dashed var(--border); border-radius: 12px; padding: 28px;
+            text-align: center; cursor: pointer; transition: all 0.2s;
+            color: var(--text2); font-size: 13px;
+        }
+        .upload-area:hover { border-color: var(--accent2); background: rgba(124,58,237,0.03); }
+        .upload-area.dragover { border-color: var(--accent); background: rgba(124,58,237,0.08); }
+        .upload-icon { font-size: 30px; margin-bottom: 8px; }
+        .upload-hint { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+        .preview-area { margin-top: 12px; }
+        .preview-meta {
+            font-size: 12px; color: var(--text2); display: flex; align-items: center;
+            gap: 8px; margin-bottom: 8px;
+        }
+        .preview-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .preview-frame {
+            position: relative; border-radius: 8px; overflow: hidden;
+            border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .preview-frame img { width: 120px; height: 68px; object-fit: cover; display: block; }
+        .frame-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.55); color: white; font-size: 10px;
+            padding: 2px 6px; text-align: center;
+        }
+        .btn-remove {
+            background: none; border: 1px solid var(--border); color: var(--red);
+            border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px;
+        }
+        .btn-remove:hover { background: rgba(220,38,38,0.06); }
+
+        /* Generate */
+        .btn-generate {
+            width: 100%; padding: 14px; background: var(--accent); color: white;
+            border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: background 0.2s; margin-top: 6px;
+        }
+        .btn-generate:hover { background: var(--accent2); }
+        .btn-generate:disabled { background: #c4b5fd; cursor: not-allowed; }
+
+        /* Loading */
+        .loading { display: none; text-align: center; padding: 48px 20px; }
+        .loading.show { display: block; }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.7s linear infinite; margin: 0 auto 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text2); font-size: 13px; }
+
+        /* Results */
+        .results { display: none; margin-top: 24px; }
+        .results.show { display: block; }
+
+        .result-block {
+            background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+            margin-bottom: 14px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .result-header {
+            padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .result-num {
+            width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: white;
+        }
+        .n1 { background: var(--blue); }
+        .n2 { background: var(--green); }
+        .n3 { background: var(--orange); }
+        .result-title { font-size: 15px; font-weight: 700; }
+        .result-body { padding: 18px 20px; }
+
+        /* Sub sections */
+        .sub { margin-bottom: 20px; }
+        .sub:last-child { margin-bottom: 0; }
+        .sub-label {
+            font-size: 11px; font-weight: 700; color: var(--accent2);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .sub-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* Copy items (자막) */
+        .copy-list { display: flex; flex-direction: column; gap: 6px; }
+        .copy-item {
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px 14px; font-size: 13px; line-height: 1.5;
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+            cursor: pointer; transition: border-color 0.15s;
+        }
+        .copy-item:hover { border-color: var(--accent); }
+        .copy-item .ci-icon { font-size: 12px; color: var(--text2); flex-shrink: 0; margin-top: 2px; opacity: 0.5; }
+        .copy-item:hover .ci-icon { opacity: 1; color: var(--accent); }
+
+        /* Info block (편집/컷) */
+        .info-block {
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .info-row { margin-bottom: 10px; }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-k {
+            font-size: 11px; font-weight: 700; color: var(--accent2);
+            text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px;
+        }
+        .info-v { font-size: 13px; color: var(--text); line-height: 1.6; }
+        .prompt-box {
+            font-family: 'Courier New', monospace; font-size: 12px;
+            background: rgba(0,0,0,0.04); border: 1px solid var(--border);
+            border-radius: 6px; padding: 10px 12px; color: var(--text);
+            line-height: 1.7; margin-top: 6px; word-break: break-all;
+        }
+        .btn-copy-prompt {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; color: var(--accent2); cursor: pointer;
+            margin-top: 8px; font-weight: 600; background: rgba(124,58,237,0.06);
+            border-radius: 4px; padding: 3px 8px;
+            border: 1px solid rgba(124,58,237,0.15); transition: all 0.15s;
+        }
+        .btn-copy-prompt:hover { background: rgba(124,58,237,0.14); }
+
+        /* Emoji row */
+        .emoji-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .emoji-chip {
+            font-size: 20px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 4px 10px; cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .emoji-chip:hover { border-color: var(--accent); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1e1e2e; color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+            z-index: 9999;
+        }
+        .toast.show { opacity: 1; }
+
+        @media (max-width: 600px) {
+            .settings-bar { flex-wrap: wrap; }
+            .preview-frame img { width: 90px; height: 51px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Add Hook — 표현 방식</h1>
+        <p>소재를 올리면 자막 추가 · 영상 재편집 · 컷 추가 기획안을 생성합니다</p>
+    </header>
+
+    <!-- Settings -->
+    <div class="settings-bar">
+        <input type="password" id="apiKey" placeholder="Anthropic API Key" oninput="saveKey()">
+        <select id="modelSelect" onchange="saveModel()">
+            <option value="claude-opus-4-6">claude-opus-4-6</option>
+            <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6</option>
+            <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+        </select>
+    </div>
+
+    <!-- Step 1: Game -->
+    <div class="card">
+        <div class="card-label">1 · 게임 선택</div>
+        <div class="game-grid" id="gameGrid"></div>
+    </div>
+
+    <!-- Step 2: Upload -->
+    <div class="card">
+        <div class="card-label">2 · 소재 업로드</div>
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">🎬</div>
+            <div>영상 또는 이미지를 클릭하거나 드래그하세요</div>
+            <div class="upload-hint">MP4 · MOV · WebM · GIF · JPG · PNG</div>
+        </div>
+        <div class="preview-area" id="previewArea" style="display:none"></div>
+    </div>
+
+    <!-- Step 3: Campaign -->
+    <div class="card">
+        <div class="card-label">3 · 캠페인 유형</div>
+        <div class="campaign-pills" id="campaignPills"></div>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generate()">기획안 생성</button>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">영상 분석 중...</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+        <!-- ① 자막 추가 -->
+        <div class="result-block">
+            <div class="result-header">
+                <div class="result-num n1">①</div>
+                <div class="result-title">자막 추가</div>
+            </div>
+            <div class="result-body" id="resultCaption"></div>
+        </div>
+
+        <!-- ② 영상 재편집 -->
+        <div class="result-block">
+            <div class="result-header">
+                <div class="result-num n2">②</div>
+                <div class="result-title">영상 재편집</div>
+            </div>
+            <div class="result-body" id="resultEdit"></div>
+        </div>
+
+        <!-- ③ 컷 추가 -->
+        <div class="result-block">
+            <div class="result-header">
+                <div class="result-num n3">③</div>
+                <div class="result-title">컷 추가</div>
+            </div>
+            <div class="result-body" id="resultCut"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== DATA =====================
+const GAMES = {
+    poker_classic: { name: '포커 클래식', icon: '🎰', usp: 'PC포커 모바일 버전, PC-모바일 크로스플랫폼 통합플레이, 게임머니/마일리지 PC 완전 연동, 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종+슬롯, 모바일 전용 가챠 프라이즈, 일일 타임 보너스', target: '30-50대 남성, 기존 PC포커 유저의 모바일 전환', motivation: 'PC에서 하던 포커를 모바일에서 이어하기, PC유저와 같이 플레이, 기존 자산(골드/등급) 유지', keywords: '포커클래식, 모바일포커, 크로스플랫폼, PC연동, 7포커' },
+    pc_poker:       { name: 'PC포커', icon: '💻', usp: '한게임 최장수 원조 PC 포커, 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종, HPC 시즌제 챔피언십(총상금 1조골드), 블루~챔피언 등급 채널, 길드전, VIP 라운지', target: '30-50대 남성, 등급별 경쟁 선호 장기 플레이어', motivation: '다양한 포커 변형 재미, 등급 상승 성취감, HPC 챔피언십 도전, 상위100명 스페셜 효과', keywords: 'PC포커, 7포커, HPC, 챔피언십, 길드전, VIP, 등급' },
+    hangame_holdem: { name: '한게임 홀덤', icon: '🂡', usp: '2025.9월 신작, 한국식 5인 홀덤, 원터치 베팅 빠른 속도감, 캐주얼하면서 심리전의 긴장감, 짧은 시간 한판 승부', target: '20-30대 남녀, 홀덤 입문자·캐주얼 유저', motivation: '빠른 한판의 짜릿함, 원터치 베팅 간편함, 5인 소규모 심리전', keywords: '한게임홀덤, 5인홀덤, 원터치베팅, 캐주얼홀덤, 심리전' },
+    hangame_poker:  { name: '한게임 포커', icon: '🃏', usp: '7포커/로우바둑이/하이로우/텍사스홀덤 4종, 럭키랜드+코인경기장(블랙잭/룰렛/슬롯/바카라 통합), 클럽 시스템, 모바일 전용 독립 게임', target: '20-40대 남성, 모바일 포커+카지노 게임 병행 유저', motivation: '다양한 포커 변형, 럭키랜드 카지노 스릴, 클럽 미션 보상', keywords: '한게임포커, 7포커, 로우바둑이, 럭키랜드, 슬롯, 바카라' },
+    royal_holdem:   { name: '로얄홀덤', icon: '👑', usp: '2025.9월 리뉴얼, TDA룰 정통 텍사스홀덤, 화려한 3D그래픽+패쪼기 손맛, 토너먼트/홀덤/오마하/싯앤고, HPT 오프라인 대회(총상금 10억), PC+모바일 지원', target: '20-40대 남녀, 홀덤 마니아, 토너먼트 경쟁 추구', motivation: '정통 TDA룰 실력 승부, 대규모 토너먼트 스릴, HPT 오프라인 도전, 3D 패쪼기 손맛', keywords: '로얄홀덤, TDA, 토너먼트, 바운티헌터, HPT, 오마하, 3D패쪼기' },
+    sutda_matgo:    { name: '섯다&맞고', icon: '🎴', usp: '모바일 섯다 점유율 1위, 2장·3장·홀덤·베짱섯다+맞고 5종, 독도수호전/공방전(최상위 점령전), 동호회 시스템, 왕중왕전', target: '30-60대 남녀, 화투·섯다 문화에 친숙한 유저', motivation: '큰 판 긴장감과 눈치싸움, 동호회·지역 경쟁, 토너먼트 도전', keywords: '섯다, 맞고, 화투, 독도수호전, 동호회, 눈치싸움, 손맛' },
+    shin_matgo:     { name: '신맞고', icon: '🌟', usp: '대한민국 원조 고스톱 2004년 오픈, 스피드모드, 카페 시스템, 주간 15만명 랭킹 챌린지, 접속만 해도 최대 10억냥, 친선대전', target: '30-60대 남녀, 고스톱·맞고 유저', motivation: '실시간 대전 박진감, 공정한 룰, 주간 랭킹 경쟁, 무료 게임머니, 지인과 친선대전', keywords: '신맞고, 원조고스톱, 포키, 카페, 랭킹, 스피드모드, 10억냥' },
+    uparu_odyssey:  { name: '우파루 오딧세이', icon: '🐾', usp: '500종+ 우파루 수집·육성·조합, 11가지 속성 상성, 마을 꾸미기 힐링, 속성 덱 전략 전투, 우파루마운틴 IP 후속작', target: '10-30대 남녀, 캐주얼 수집·육성 게임 선호', motivation: '귀여운 우파루 수집·조합 욕구, 마을 꾸미기 힐링, 도감 완성 성취감', keywords: '우파루, 수집, 조합, 소환, 마을꾸미기, 11속성, 힐링' }
+};
+
+const CAMPAIGNS = [
+    { id: 'bau',       name: 'BAU (상시)' },
+    { id: 'newuser',   name: '신규 유저 획득' },
+    { id: 'retention', name: '리텐션 / 복귀' },
+    { id: 'event',     name: '이벤트 / 프로모션' },
+    { id: 'season',    name: '시즌 / 명절' },
+    { id: 'brand',     name: '브랜드 / 리치' }
+];
+
+// ===================== STATE =====================
+let state = {
+    game: null,
+    campaign: null,
+    frames: [],
+    mediaName: null
+};
+
+// ===================== INIT =====================
+function init() {
+    const key = localStorage.getItem('adhook3_key');
+    if (key) document.getElementById('apiKey').value = key;
+    const model = localStorage.getItem('adhook3_model');
+    if (model) document.getElementById('modelSelect').value = model;
+
+    // Game grid
+    document.getElementById('gameGrid').innerHTML =
+        Object.entries(GAMES).map(([id, g]) =>
+            `<div class="game-card" data-id="${id}" onclick="selectGame('${id}')">
+                <span class="g-icon">${g.icon}</span>
+                <span class="g-name">${g.name}</span>
+            </div>`
+        ).join('');
+
+    // Campaign pills
+    document.getElementById('campaignPills').innerHTML =
+        CAMPAIGNS.map(c =>
+            `<div class="campaign-pill" data-id="${c.id}" onclick="selectCampaign('${c.id}')">${c.name}</div>`
+        ).join('');
+
+    // Upload
+    const area = document.getElementById('uploadArea');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,video/mp4,video/quicktime,video/webm,.gif';
+    input.hidden = true;
+    area.appendChild(input);
+
+    area.addEventListener('click', () => input.click());
+    area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+    area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+    area.addEventListener('drop', e => {
+        e.preventDefault(); area.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    input.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+}
+
+function saveKey()   { localStorage.setItem('adhook3_key',   document.getElementById('apiKey').value); }
+function saveModel() { localStorage.setItem('adhook3_model', document.getElementById('modelSelect').value); }
+
+function selectGame(id) {
+    state.game = id;
+    document.querySelectorAll('.game-card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+}
+function selectCampaign(id) {
+    state.campaign = id;
+    document.querySelectorAll('.campaign-pill').forEach(p => p.classList.toggle('selected', p.dataset.id === id));
+}
+
+// ===================== FILE HANDLING =====================
+async function handleFile(file) {
+    state.frames = [];
+    state.mediaName = file.name;
+    const isVideo = file.type.startsWith('video/') || /\.(gif|mp4|mov|webm|avi)$/i.test(file.name);
+
+    const pa = document.getElementById('previewArea');
+    pa.style.display = 'block';
+    pa.innerHTML = '<div class="preview-meta">⏳ 처리 중...</div>';
+
+    if (isVideo) {
+        await extractFrames(file);
+    } else {
+        await loadImage(file);
+    }
+}
+
+function loadImage(file) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX = 1024;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    const r = Math.min(MAX/w, MAX/h);
+                    w = Math.round(w * r); h = Math.round(h * r);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+                state.frames = [b64];
+                showPreview([{ b64, label: '소재' }]);
+                resolve();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function extractFrames(file) {
+    return new Promise(resolve => {
+        const video = document.createElement('video');
+        video.muted = true; video.preload = 'metadata';
+        const url = URL.createObjectURL(file);
+        video.src = url;
+
+        video.onloadedmetadata = () => {
+            const dur = video.duration;
+            const positions = [0.05, 0.15, 0.30, 0.50, 0.70, 0.85, 0.95];
+            const times = positions.map(p => Math.min(p * dur, dur - 0.05));
+            const frames = [];
+            let idx = 0;
+
+            const capture = () => {
+                if (idx >= times.length) {
+                    state.frames = frames.map(f => f.b64);
+                    showPreview(frames);
+                    URL.revokeObjectURL(url);
+                    resolve();
+                    return;
+                }
+                video.currentTime = times[idx];
+            };
+
+            video.onseeked = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 480; canvas.height = 270;
+                canvas.getContext('2d').drawImage(video, 0, 0, 480, 270);
+                const b64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+                const t = times[idx];
+                const label = `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+                frames.push({ b64, label });
+                idx++;
+                capture();
+            };
+
+            video.onerror = () => {
+                showPreview([]);
+                resolve();
+            };
+
+            capture();
+        };
+    });
+}
+
+function showPreview(frames) {
+    const pa = document.getElementById('previewArea');
+    const grid = frames.length > 0
+        ? `<div class="preview-grid">${frames.map(f =>
+            `<div class="preview-frame">
+                <img src="data:image/jpeg;base64,${f.b64}" alt="${f.label}">
+                <div class="frame-label">${f.label}</div>
+            </div>`
+          ).join('')}</div>`
+        : '';
+    pa.innerHTML = `
+        <div class="preview-meta">
+            ✅ ${esc(state.mediaName)}
+            <button class="btn-remove" onclick="removeUpload()">✕ 제거</button>
+        </div>
+        ${grid}
+    `;
+}
+
+function removeUpload() {
+    state.frames = []; state.mediaName = null;
+    const pa = document.getElementById('previewArea');
+    pa.style.display = 'none'; pa.innerHTML = '';
+}
+
+// ===================== GENERATE =====================
+async function generate() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey)          { toast('API Key를 입력해주세요'); return; }
+    if (!state.game)      { toast('게임을 선택해주세요'); return; }
+    if (!state.campaign)  { toast('캠페인 유형을 선택해주세요'); return; }
+
+    const model = document.getElementById('modelSelect').value;
+    const game = GAMES[state.game];
+    const campaign = CAMPAIGNS.find(c => c.id === state.campaign);
+
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('generateBtn').disabled = true;
+
+    const msgs = ['영상 분석 중...', '훅 아이디어 생성 중...', '편집 기획안 작성 중...', '마무리 중...'];
+    let mi = 0;
+    const timer = setInterval(() => {
+        mi = (mi + 1) % msgs.length;
+        document.getElementById('loadingText').textContent = msgs[mi];
+    }, 2500);
+
+    try {
+        const content = buildContent(game, campaign);
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+                'anthropic-dangerous-direct-browser-calls': 'true'
+            },
+            body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error?.message || `API 오류 ${res.status}`);
+        }
+
+        const data = await res.json();
+        const text = data.content[0].text;
+        const parsed = parseJSON(text);
+        renderResults(parsed);
+
+    } catch (e) {
+        toast('오류: ' + e.message);
+    } finally {
+        clearInterval(timer);
+        document.getElementById('loading').classList.remove('show');
+        document.getElementById('generateBtn').disabled = false;
+    }
+}
+
+function buildContent(game, campaign) {
+    const parts = [];
+
+    // Attach frames if available
+    state.frames.forEach(b64 => {
+        parts.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } });
+    });
+
+    const frameNote = state.frames.length > 0
+        ? `위 이미지는 광고 소재 영상에서 추출한 ${state.frames.length}개 프레임입니다. 소재 내용을 반드시 분석하여 반영하세요.`
+        : `(업로드된 소재 없음 — 게임 맥락 기반으로 생성하세요)`;
+
+    const prompt = `당신은 한게임 광고 소재 전문 기획자입니다.
+
+${frameNote}
+
+## 게임
+- 게임명: ${game.name}
+- USP: ${game.usp}
+- 타겟: ${game.target}
+- 동기: ${game.motivation}
+- 키워드: ${game.keywords}
+
+## 캠페인
+${campaign.name}
+
+---
+
+아래 JSON 형식으로만 출력하세요. JSON 외 텍스트는 절대 포함하지 마세요.
+
+\`\`\`json
+{
+  "caption": {
+    "random_question": ["문구1", "문구2", "문구3"],
+    "number_hook": ["문구1", "문구2", "문구3"],
+    "review_quote": ["문구1", "문구2", "문구3"],
+    "teaser": ["문구1", "문구2", "문구3"]
+  },
+  "re_edit": {
+    "highlight": {
+      "recommendation": "어떤 장면·구간을 오프닝으로 배치할지 구체적으로",
+      "reason": "왜 이 장면이 훅으로 효과적인지",
+      "tip": "편집 시 주의점 또는 추가 팁"
+    },
+    "creator_reaction": {
+      "direction": "어떤 종류의 크리에이터 반응 컷이 필요한지",
+      "reason": "왜 이 반응 컷이 효과적인지",
+      "tip": "촬영·섭외 방향 팁"
+    }
+  },
+  "cut_add": {
+    "meme": {
+      "format": "어떤 밈 포맷을 활용할지 (밈 이름/유형 명시)",
+      "direction": "구체적인 활용 방향",
+      "example": "실제 영상에서의 적용 예시"
+    },
+    "ai_moment": {
+      "concept": "어떤 비현실적 장면을 만들 것인지 한국어 개요",
+      "prompt_en": "Detailed English prompt for AI image/video generation (Midjourney/Sora/Runway compatible). Be specific about style, lighting, action, and mood.",
+      "style_note": "비주얼 스타일 방향 한 줄"
+    },
+    "emoji_sticker": {
+      "timing": "어느 타이밍에 어떻게 삽입할지",
+      "items": ["이모지1", "이모지2", "이모지3", "이모지4"],
+      "tip": "효과적인 활용 방법"
+    }
+  }
+}
+\`\`\`
+
+규칙:
+- 자막 문구는 실제 광고에 바로 쓸 수 있는 완성형으로 작성
+- 소재 프레임이 있으면 영상 내용을 구체적으로 참조
+- 모든 항목은 ${game.name} · ${campaign.name} 맥락에 맞게`;
+
+    parts.push({ type: 'text', text: prompt });
+    return parts;
+}
+
+function parseJSON(text) {
+    try {
+        const m = text.match(/```json\s*([\s\S]*?)\s*```/);
+        return JSON.parse(m ? m[1] : text);
+    } catch (e) {
+        console.error('Parse error', e);
+        return null;
+    }
+}
+
+// ===================== RENDER =====================
+function renderResults(d) {
+    if (!d) { toast('결과 파싱 실패. 다시 시도해주세요.'); return; }
+
+    // ① 자막 추가
+    const c = d.caption;
+    document.getElementById('resultCaption').innerHTML = [
+        makeCopySection('뜬금없는 질문', c.random_question),
+        makeCopySection('숫자 자극', c.number_hook),
+        makeCopySection('리뷰 / 댓글 인용', c.review_quote),
+        makeCopySection('예고', c.teaser)
+    ].join('');
+
+    // ② 영상 재편집
+    const r = d.re_edit;
+    document.getElementById('resultEdit').innerHTML = `
+        <div class="sub">
+            <div class="sub-label">하이라이트 구간 배치</div>
+            ${makeInfoBlock([
+                { k: '추천', v: r.highlight.recommendation },
+                { k: '이유', v: r.highlight.reason },
+                { k: '팁',   v: r.highlight.tip }
+            ])}
+        </div>
+        <div class="sub">
+            <div class="sub-label">크리에이터 실제 반응</div>
+            ${makeInfoBlock([
+                { k: '방향', v: r.creator_reaction.direction },
+                { k: '이유', v: r.creator_reaction.reason },
+                { k: '팁',   v: r.creator_reaction.tip }
+            ])}
+        </div>`;
+
+    // ③ 컷 추가
+    const ct = d.cut_add;
+    const emojiItems = Array.isArray(ct.emoji_sticker.items) ? ct.emoji_sticker.items : [];
+
+    document.getElementById('resultCut').innerHTML = `
+        <div class="sub">
+            <div class="sub-label">유행하는 밈</div>
+            ${makeInfoBlock([
+                { k: '포맷', v: ct.meme.format },
+                { k: '방향', v: ct.meme.direction },
+                { k: '예시', v: ct.meme.example }
+            ])}
+        </div>
+        <div class="sub">
+            <div class="sub-label">AI 비현실적 모먼트</div>
+            <div class="info-block">
+                <div class="info-row">
+                    <div class="info-k">개념</div>
+                    <div class="info-v">${esc(ct.ai_moment.concept)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">스타일</div>
+                    <div class="info-v">${esc(ct.ai_moment.style_note)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">생성 프롬프트</div>
+                    <div class="prompt-box">${esc(ct.ai_moment.prompt_en)}</div>
+                    <div class="btn-copy-prompt" onclick="copy('${escAttr(ct.ai_moment.prompt_en)}')">📋 프롬프트 복사</div>
+                </div>
+            </div>
+        </div>
+        <div class="sub">
+            <div class="sub-label">이모지 / 스티커</div>
+            <div class="info-block">
+                <div class="info-row">
+                    <div class="info-k">타이밍</div>
+                    <div class="info-v">${esc(ct.emoji_sticker.timing)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">추천</div>
+                    <div class="emoji-row">${emojiItems.map(e =>
+                        `<span class="emoji-chip" onclick="copy('${escAttr(e)}')" title="클릭해서 복사">${esc(e)}</span>`
+                    ).join('')}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">팁</div>
+                    <div class="info-v">${esc(ct.emoji_sticker.tip)}</div>
+                </div>
+            </div>
+        </div>`;
+
+    document.getElementById('results').classList.add('show');
+    setTimeout(() => document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function makeCopySection(title, items) {
+    const list = Array.isArray(items)
+        ? items.map(t => `<div class="copy-item" onclick="copy('${escAttr(t)}')"><span>${esc(t)}</span><span class="ci-icon">📋</span></div>`).join('')
+        : '';
+    return `<div class="sub"><div class="sub-label">${title}</div><div class="copy-list">${list}</div></div>`;
+}
+
+function makeInfoBlock(rows) {
+    return `<div class="info-block">${rows.map(r =>
+        `<div class="info-row"><div class="info-k">${r.k}</div><div class="info-v">${esc(r.v || '')}</div></div>`
+    ).join('')}</div>`;
+}
+
+// ===================== UTILS =====================
+function copy(text) {
+    navigator.clipboard.writeText(text).then(() => toast('복사됨'));
+}
+
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+    return String(s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');
+}
+
+init();
+</script>
+</body>
+</html>
