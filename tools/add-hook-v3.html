@@ -220,6 +220,15 @@
         }
         .toast.show { opacity: 1; }
 
+        /* Error box */
+        .error-box {
+            display: none; background: #fef2f2; border: 1px solid #fca5a5;
+            border-radius: 12px; padding: 14px 18px; margin-top: 12px;
+            font-size: 13px; color: #b91c1c; line-height: 1.6;
+        }
+        .error-box.show { display: block; }
+        .error-box strong { display: block; margin-bottom: 4px; font-size: 14px; }
+
         @media (max-width: 600px) {
             .settings-bar { flex-wrap: wrap; }
             .preview-frame img { width: 90px; height: 51px; }
@@ -268,6 +277,12 @@
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">기획안 생성</button>
+
+    <div class="error-box" id="errorBox">
+        <strong>오류 발생</strong>
+        <span id="errorMsg"></span>
+        <div style="margin-top:8px; font-size:11px; color:#9ca3af">브라우저 콘솔(F12 → Console)에서 상세 로그를 확인하세요.</div>
+    </div>
 
     <!-- Loading -->
     <div class="loading" id="loading">
@@ -529,8 +544,12 @@ async function generate() {
         document.getElementById('loadingText').textContent = msgs[mi];
     }, 2500);
 
+    hideError();
     try {
         const content = buildContent(game, campaign);
+        const requestBody = { model, max_tokens: 4096, messages: [{ role: 'user', content }] };
+        console.log('[AddHook] 요청 시작 — model:', model, '/ frames:', state.frames.length);
+
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -539,12 +558,17 @@ async function generate() {
                 'content-type': 'application/json',
                 'anthropic-dangerous-direct-browser-access': 'true'
             },
-            body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+            body: JSON.stringify(requestBody)
         });
 
+        console.log('[AddHook] 응답 상태:', res.status);
+
         if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.error?.message || `API 오류 ${res.status}`);
+            const errBody = await res.text().catch(() => '');
+            console.error('[AddHook] API 오류 응답:', errBody);
+            let msg = `HTTP ${res.status}`;
+            try { msg = JSON.parse(errBody).error?.message || msg; } catch {}
+            throw new Error(msg);
         }
 
         const data = await res.json();
@@ -553,7 +577,8 @@ async function generate() {
         renderResults(parsed);
 
     } catch (e) {
-        toast('오류: ' + e.message);
+        console.error('[AddHook] catch 오류:', e);
+        showError(e.message);
     } finally {
         clearInterval(timer);
         document.getElementById('loading').classList.remove('show');
@@ -752,6 +777,16 @@ function makeInfoBlock(rows) {
 }
 
 // ===================== UTILS =====================
+function showError(msg) {
+    const box = document.getElementById('errorBox');
+    document.getElementById('errorMsg').textContent = msg;
+    box.classList.add('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function hideError() {
+    document.getElementById('errorBox').classList.remove('show');
+}
+
 function copy(text) {
     navigator.clipboard.writeText(text).then(() => toast('복사됨'));
 }
