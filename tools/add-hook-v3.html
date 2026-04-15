@@ -310,12 +310,13 @@
 
     <!-- Settings -->
     <div class="settings-bar">
-        <input type="password" id="apiKey" placeholder="sk-ant-api03-... (Anthropic API Key)" oninput="saveKey(); checkKey()">
-        <select id="modelSelect" onchange="saveModel()">
-            <option value="claude-opus-4-20250514">Opus 4 (최고품질)</option>
-            <option value="claude-sonnet-4-20250514" selected>Sonnet 4 (추천)</option>
-            <option value="claude-haiku-4-5-20251001">Haiku 4.5 (빠름)</option>
+        <select id="providerSelect" onchange="onProviderChange()">
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="gemini">Gemini (Google)</option>
+            <option value="openai">GPT (OpenAI)</option>
         </select>
+        <select id="modelSelect" onchange="saveModel()"></select>
+        <input type="password" id="apiKey" placeholder="API Key" oninput="saveKey(); checkKey()">
     </div>
     <div id="keyStatus" style="font-size:12px; margin-bottom:12px; padding: 0 4px; display:none"></div>
 
@@ -404,6 +405,34 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ===================== PROVIDERS =====================
+const PROVIDER_MODELS = {
+    claude: [
+        { value: 'claude-opus-4-20250514',   label: 'Opus 4 (최고품질)' },
+        { value: 'claude-sonnet-4-20250514',  label: 'Sonnet 4 (추천)' },
+        { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 (빠름)' }
+    ],
+    gemini: [
+        { value: 'gemini-2.0-flash',   label: 'Gemini 2.0 Flash (빠름·저렴)' },
+        { value: 'gemini-1.5-pro',     label: 'Gemini 1.5 Pro (고품질)' },
+        { value: 'gemini-2.0-flash-thinking-exp', label: 'Gemini 2.0 Flash Thinking (실험)' }
+    ],
+    openai: [
+        { value: 'gpt-4o',      label: 'GPT-4o (고품질)' },
+        { value: 'gpt-4o-mini', label: 'GPT-4o mini (저렴)' }
+    ]
+};
+const KEY_PLACEHOLDERS = {
+    claude: 'sk-ant-api03-... (Anthropic)',
+    gemini: 'AIza... (Google AI Studio)',
+    openai: 'sk-... (OpenAI)'
+};
+const KEY_PREFIXES = {
+    claude: 'sk-ant-',
+    gemini: 'AIza',
+    openai: 'sk-'
+};
+
 // ===================== DATA =====================
 const GAMES = {
     poker_classic: {
@@ -593,10 +622,10 @@ let state = {
 
 // ===================== INIT =====================
 function init() {
-    const key = localStorage.getItem('adhook3_key');
-    if (key) { document.getElementById('apiKey').value = key; checkKey(); }
-    const model = localStorage.getItem('adhook3_model');
-    if (model) document.getElementById('modelSelect').value = model;
+    // Restore provider first, then trigger onProviderChange to populate models/key
+    const savedProvider = localStorage.getItem('adhook3_provider') || 'claude';
+    document.getElementById('providerSelect').value = savedProvider;
+    onProviderChange(); // populates model dropdown + key field
 
     // Game grid — grouped by category
     const categories = ['포커', '고스톱', 'RPG'];
@@ -638,21 +667,48 @@ function init() {
     input.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 }
 
-function saveKey()   { localStorage.setItem('adhook3_key',   document.getElementById('apiKey').value); }
-function saveModel() { localStorage.setItem('adhook3_model', document.getElementById('modelSelect').value); }
+function currentProvider() { return document.getElementById('providerSelect').value; }
+
+function saveKey() {
+    const p = currentProvider();
+    localStorage.setItem('adhook3_key_' + p, document.getElementById('apiKey').value);
+}
+function saveModel() {
+    const p = currentProvider();
+    localStorage.setItem('adhook3_model_' + p, document.getElementById('modelSelect').value);
+}
 
 function checkKey() {
     const key = document.getElementById('apiKey').value.trim();
     const el = document.getElementById('keyStatus');
     if (!key) { el.style.display = 'none'; return; }
+    const prefix = KEY_PREFIXES[currentProvider()];
     el.style.display = 'block';
-    if (key.startsWith('sk-ant-')) {
+    if (key.startsWith(prefix)) {
         el.style.color = '#16a34a';
-        el.textContent = '✅ API 키 형식 정상 (' + key.slice(0,14) + '...)';
+        el.textContent = '✅ API 키 형식 정상 (' + key.slice(0, 14) + '...)';
     } else {
         el.style.color = '#dc2626';
-        el.textContent = '⚠️ API 키가 sk-ant- 로 시작해야 합니다. 현재: ' + key.slice(0,10) + '...';
+        el.textContent = `⚠️ 이 키는 "${prefix}"로 시작해야 합니다. 현재: ${key.slice(0,10)}...`;
     }
+}
+
+function onProviderChange() {
+    const p = currentProvider();
+    // update model options
+    const sel = document.getElementById('modelSelect');
+    sel.innerHTML = PROVIDER_MODELS[p].map((m, i) =>
+        `<option value="${m.value}"${i===1?'':''} >${m.label}</option>`
+    ).join('');
+    // restore saved model
+    const saved = localStorage.getItem('adhook3_model_' + p);
+    if (saved) sel.value = saved;
+    // update key placeholder & value
+    document.getElementById('apiKey').placeholder = KEY_PLACEHOLDERS[p];
+    const savedKey = localStorage.getItem('adhook3_key_' + p) || '';
+    document.getElementById('apiKey').value = savedKey;
+    localStorage.setItem('adhook3_provider', p);
+    checkKey();
 }
 
 function selectGame(id) {
@@ -958,36 +1014,14 @@ async function generate() {
 
     hideError();
     try {
-        const content = buildContent(game, campaign);
-        const requestBody = { model, max_tokens: 4096, messages: [{ role: 'user', content }] };
-        console.log('[AddHook] 요청 시작 — model:', model, '/ frames:', state.frames.length);
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-                'anthropic-dangerous-direct-browser-access': 'true'
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        console.log('[AddHook] 응답 상태:', res.status);
-
-        if (!res.ok) {
-            const errBody = await res.text().catch(() => '');
-            console.error('[AddHook] API 오류 응답:', errBody);
-            let msg = `HTTP ${res.status}`;
-            try { msg = JSON.parse(errBody).error?.message || msg; } catch {}
-            throw new Error(msg);
-        }
-
-        const data = await res.json();
-        const text = data.content[0].text;
+        const provider = currentProvider();
+        console.log('[AddHook] 요청 시작 — provider:', provider, '/ model:', model, '/ frames:', state.frames.length);
+        let text;
+        if (provider === 'claude')      text = await callClaude(apiKey, model, game, campaign);
+        else if (provider === 'gemini') text = await callGemini(apiKey, model, game, campaign);
+        else                            text = await callOpenAI(apiKey, model, game, campaign);
         const parsed = parseJSON(text);
         renderResults(parsed);
-
     } catch (e) {
         console.error('[AddHook] catch 오류:', e);
         showError(e.message);
@@ -998,19 +1032,98 @@ async function generate() {
     }
 }
 
-function buildContent(game, campaign) {
-    const parts = [];
+async function callClaude(apiKey, model, game, campaign) {
+    const content = buildClaudeContent(game, campaign);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+            'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+    });
+    if (!res.ok) {
+        const err = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(err).error?.message || msg; } catch {}
+        throw new Error('[Claude] ' + msg);
+    }
+    const data = await res.json();
+    return data.content[0].text;
+}
 
-    // Attach frames if available
+async function callGemini(apiKey, model, game, campaign) {
+    const parts = [];
+    state.frames.forEach(b64 => {
+        parts.push({ inlineData: { mimeType: 'image/jpeg', data: b64 } });
+    });
+    parts.push({ text: buildPromptText(game, campaign) });
+
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts }],
+                generationConfig: { maxOutputTokens: 4096 }
+            })
+        }
+    );
+    if (!res.ok) {
+        const err = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(err).error?.message || msg; } catch {}
+        throw new Error('[Gemini] ' + msg);
+    }
+    const data = await res.json();
+    return data.candidates[0].content.parts[0].text;
+}
+
+async function callOpenAI(apiKey, model, game, campaign) {
+    const content = [];
+    state.frames.forEach(b64 => {
+        content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } });
+    });
+    content.push({ type: 'text', text: buildPromptText(game, campaign) });
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + apiKey,
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+    });
+    if (!res.ok) {
+        const err = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(err).error?.message || msg; } catch {}
+        throw new Error('[GPT] ' + msg);
+    }
+    const data = await res.json();
+    return data.choices[0].message.content;
+}
+
+// Claude 전용 content 배열 (image source 포맷)
+function buildClaudeContent(game, campaign) {
+    const parts = [];
     state.frames.forEach(b64 => {
         parts.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } });
     });
+    parts.push({ type: 'text', text: buildPromptText(game, campaign) });
+    return parts;
+}
 
+// 공통 텍스트 프롬프트 (모든 provider 공유)
+function buildPromptText(game, campaign) {
     const frameNote = state.frames.length > 0
         ? `위 이미지는 광고 소재 영상에서 추출한 ${state.frames.length}개 프레임입니다. 소재 내용을 반드시 분석하여 반영하세요.`
         : `(업로드된 소재 없음 — 게임 맥락 기반으로 생성하세요)`;
 
-    const prompt = `당신은 한게임 광고 소재 전문 기획자입니다.
+    return `당신은 한게임 광고 소재 전문 기획자입니다.
 
 ${frameNote}
 
@@ -1072,9 +1185,6 @@ ${campaign.name}
 - 자막 문구는 실제 광고에 바로 쓸 수 있는 완성형으로 작성
 - 소재 프레임이 있으면 영상 내용을 구체적으로 참조
 - 모든 항목은 ${game.name} · ${campaign.name} 맥락에 맞게`;
-
-    parts.push({ type: 'text', text: prompt });
-    return parts;
 }
 
 function parseJSON(text) {
