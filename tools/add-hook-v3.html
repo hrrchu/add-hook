@@ -472,6 +472,57 @@
         </div>
 
     </div>
+
+    <!-- 제작팁 (항상 접힌 상태) -->
+    <div class="result-block" id="tipBlock" style="margin-top:24px">
+        <div class="result-header ready" onclick="toggleTip()" style="cursor:pointer">
+            <div style="font-size:16px;line-height:1">💡</div>
+            <div class="result-title" style="font-size:14px">제작 팁</div>
+            <span class="result-status" id="tipStatus" style="color:var(--text2);font-size:11px;font-weight:500">▼ 펼치기</span>
+        </div>
+        <div class="result-body" id="tipBody" style="padding:0 20px 20px">
+            <div style="display:flex;flex-direction:column;gap:18px;padding-top:18px">
+
+                <div>
+                    <div style="font-size:13px;font-weight:700;margin-bottom:8px">🥊 훅 (0.4초 승부)</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">스크롤 정지력</div>
+                    <div style="font-size:13px;color:var(--text);line-height:1.6">0.4초 안에 시청자의 스크롤을 멈춰야 함. 첫 프레임이 모든 것을 결정</div>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:16px">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:10px">✂️ 편집 팁</div>
+                    <ul style="font-size:13px;color:var(--text);line-height:1.7;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+                        <li>메시지만 바꾸면 Meta가 동일 소재로 인식 → 썸네일/첫프레임 비주얼도 반드시 변경</li>
+                        <li>컷마다 줌인/줌아웃 효과로 역동감 추가</li>
+                        <li>자막은 유저의 읽는 속도와 동기화 필수</li>
+                        <li>스태틱 이미지도 2-3초 루핑으로 영상화 가능</li>
+                    </ul>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:16px">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:10px">✏️ 카피 규칙</div>
+                    <ul style="font-size:13px;color:var(--text);line-height:1.7;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+                        <li>훅 텍스트는 10자 이내 권장 (0.4초에 읽을 수 있는 길이)</li>
+                        <li>USP를 유저 베네핏으로 변환 (기능 → 내가 얻는 것)</li>
+                        <li>뻔한 표현 금지: "지금 다운로드", "놓치지 마세요"</li>
+                        <li>질문형/도발형이 명령형보다 Hook Rate 높음</li>
+                    </ul>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:16px">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:#dc2626">🚫 피해야 할 것</div>
+                    <ul style="font-size:13px;color:var(--text);line-height:1.7;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+                        <li>게임 화면만 녹화한 소재 (신규 유저 진입장벽 높음)</li>
+                        <li>로고만 있는 첫 프레임 (스크롤 정지력 없음)</li>
+                        <li>텍스트 없는 첫 0.4초 (무슨 광고인지 모름)</li>
+                        <li>동일 썸네일+다른 메시지 (Meta가 같은 소재로 인식)</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1472,6 +1523,19 @@ function toggleTab(id) {
         block.classList.add('open');
         body.classList.add('open');
         if (statusEl) statusEl.textContent = '▲ 접기';
+    }
+}
+
+function toggleTip() {
+    const body = document.getElementById('tipBody');
+    const status = document.getElementById('tipStatus');
+    const isOpen = body.classList.contains('open');
+    if (isOpen) {
+        body.classList.remove('open');
+        status.textContent = '▼ 펼치기';
+    } else {
+        body.classList.add('open');
+        status.textContent = '▲ 접기';
     }
 }
 
