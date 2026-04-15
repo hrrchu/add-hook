@@ -53,7 +53,14 @@
         }
 
         /* Game Grid */
-        .game-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .game-grid { display: flex; flex-direction: column; gap: 8px; }
+        .game-category-row { display: flex; align-items: center; gap: 10px; }
+        .game-cat-label {
+            font-size: 11px; font-weight: 700; color: var(--text2);
+            min-width: 42px; text-align: right; flex-shrink: 0;
+            letter-spacing: 0.03em;
+        }
+        .game-cat-cards { display: flex; flex-wrap: wrap; gap: 6px; }
         .game-card {
             background: var(--surface2); border: 2px solid var(--border); border-radius: 8px;
             padding: 6px 12px; cursor: pointer; transition: all 0.15s;
@@ -400,7 +407,7 @@
 // ===================== DATA =====================
 const GAMES = {
     poker_classic: {
-        name: '포커 클래식', icon: '🎰',
+        name: '포커 클래식', icon: '🎰', category: '포커',
         usp: 'PC포커의 모바일 버전. PC-모바일 크로스플랫폼 통합 플레이(같은 게임룸). 게임머니·회원제·마일리지 PC 완전 연동. 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종+슬롯(블랙잭/바카라/룰렛). 모바일 전용 가챠(티켓하우스 매지컬 체인지). 일일 타임 보너스. 원스토어·구글플레이·앱스토어·갤럭시스토어 4개 채널 지원.',
         target: '30-50대 남성. 기존 PC포커 유저의 모바일 전환. 이동 중 포커 수요.',
         motivation: 'PC에서 하던 포커를 모바일에서 이어하기. PC유저와 같이 플레이. 기존 자산(골드/등급) 유지. 가챠·티켓 미니게임 보상.',
@@ -421,7 +428,7 @@ const GAMES = {
         ]
     },
     pc_poker: {
-        name: 'PC포커', icon: '💻',
+        name: 'PC포커', icon: '💻', category: '포커',
         usp: '한게임 최장수 원조 PC 포커. 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종. 블루·골드채널 등급 시스템(시니어→영웅→세미프로→프로→챔피언). HPC(한게임포커챔피언십) 시즌제 정기 대회 — 총상금 1조580억 골드, 상위 50명 골드 지급, 상위 10명 인게임 액자효과+전용 액션아바타, 참가자 전원 액션아바타. BJ 슈퍼매치. 스피드/자유/친구 채널.',
         target: '30-50대 남성. PC 포커 장기 플레이어. 등급별 경쟁 선호. 청소년 이용불가.',
         motivation: '다양한 포커 변형 재미. 등급 상승 성취감. HPC 챔피언십 도전. 상위 10명 스페셜 효과 목표. 골드 보상. 커뮤니티.',
@@ -441,7 +448,7 @@ const GAMES = {
         ]
     },
     hangame_holdem: {
-        name: '한게임 홀덤', icon: '🂡',
+        name: '한게임 홀덤', icon: '🂡', category: '포커',
         usp: '포커클래식 라스베가스 홀덤에서 2025년 독립 앱으로 분리 출시. 한국식 5인 홀덤(테이블당 최대 5인). 원터치 베팅으로 빠른 속도감. 2025.9.23 패치로 백스트레이트 족보 제거(글로벌 TDA룰 표준화). 땡값+ 시스템(트리플부터 배수 적용). 챌린지배틀(500억골드 상금)·길드전(1조골드) 대규모 경쟁 콘텐츠.',
         target: '20-30대 남녀. 홀덤 입문자·캐주얼 유저. 빠르고 가벼운 게임 선호.',
         motivation: '빠른 한판 승부의 짜릿함. 원터치 베팅 간편함. 5인 소규모 심리전. 짧은 시간 부담 없이 플레이.',
@@ -462,7 +469,7 @@ const GAMES = {
         ]
     },
     hangame_poker: {
-        name: '한게임 포커', icon: '🃏',
+        name: '한게임 포커', icon: '🃏', category: '포커',
         usp: '2014년 출시. PC포커 20년 노하우 담은 모바일 포커. 7포커/로우바둑이/하이로우/텍사스홀덤 4종. 럭키랜드+코인경기장 통합(블랙잭/룰렛/다이사이/빅휠/슬롯/바카라 6종). 클럽 시스템(클럽미션·패스 전용 상품). 캐릭터 시스템. 매주 3조칩 랭킹전.',
         target: '20-40대 남성. 모바일 포커+카지노 게임 병행 유저. 청소년 이용불가.',
         motivation: '다양한 포커 변형 재미. 럭키랜드 카지노 스릴. 클럽 미션 혜택. 이벤트 보상.',
@@ -482,7 +489,7 @@ const GAMES = {
         ]
     },
     royal_holdem: {
-        name: '로얄홀덤', icon: '👑',
+        name: '로얄홀덤', icon: '👑', category: '포커',
         usp: '구 더블에이포커. 2025.9월 UI/UX·속도·캐릭터·카드스킨 전면 리뉴얼. TDA룰 정통 텍사스홀덤. 3D 패쪼기 손맛. 토너먼트/홀덤/오마하/싯앤고 4종. HPT(Hangame Poker Tour) 오프라인 대회 — 총상금 10억원 상당 비트코인. 2026.3월 PC버전 정식 오픈(모바일 계정 연동·가로모드·핫키). 신규 캐릭터 메이. 한게임 포커·섯다와 재화 교환 가능(로얄홀덤→타게임 이동 시 수수료 10%).',
         target: '20-40대 남녀. 홀덤 마니아. 토너먼트 경쟁 추구. PC+모바일 병행 유저.',
         motivation: '정통 TDA룰 실력 승부. 대규모 토너먼트 스릴. HPT 비트코인 상금 도전. 3D 패쪼기 손맛. 캐릭터·카드스킨 커스텀.',
@@ -504,7 +511,7 @@ const GAMES = {
         ]
     },
     sutda_matgo: {
-        name: '섯다&맞고', icon: '🎴',
+        name: '섯다&맞고', icon: '🎴', category: '고스톱',
         usp: '모바일 섯다 점유율 1위. 2장섯다/3장섯다/홀덤섯다/베짱섯다/맞고 5종. 독도수호전 — 10개 최상위 동호회, 총상금 10조쩐, 월~수 3일간 점령전. 독도공방전(수호전 우승자만). 지역 기반 동호회 시스템. 왕중왕전. 야시장 미니게임. 수호령 콘텐츠.',
         target: '30-60대 남녀. 화투·섯다 문화에 친숙. 모바일 카드게임 유저. 지역 커뮤니티 소속감 선호.',
         motivation: '큰 판 긴장감과 눈치싸움. 손맛. 동호회·지역 경쟁. 독도수호전 점령 경쟁(10조쩐). 등급 상승.',
@@ -525,7 +532,7 @@ const GAMES = {
         ]
     },
     shin_matgo: {
-        name: '신맞고', icon: '🌟',
+        name: '신맞고', icon: '🌟', category: '고스톱',
         usp: '대한민국 원조 고스톱(2004년 오픈). 스피드모드(연출 간소화·속도UP). 카페 시스템(대전+채팅+실시간 랭킹). 주간 15만명 랭킹 챌린지. 접속만 해도 최대 10억냥. 친선대전(가족/친구). 마스코트 포키(멧돼지). 구글 500만+ 다운로드.',
         target: '30-60대 남녀. 고스톱·맞고 유저. 무료 게임머니로 부담 없이 즐기려는 유저. 카페 소속감 선호.',
         motivation: '실시간 대전 박진감. 공정한 원조 룰로 실력 승부. 주간 랭킹 경쟁. 무료 게임머니(접속/출석/동영상). 지인과 친선대전.',
@@ -545,7 +552,7 @@ const GAMES = {
         ]
     },
     uparu_odyssey: {
-        name: '우파루 오딧세이', icon: '🐾',
+        name: '우파루 오딧세이', icon: '🐾', category: 'RPG',
         usp: '500종+ 우파루 수집·육성·조합. 11가지 속성(숲/땅/불/얼음/천둥/물/빛/어둠/황금/바람+매직). 매직 속성 6종(큐피/젤로/너구루/로디/샤키/수리). 조합으로 새 우파루 소환. 마을 꾸미기 힐링. 원정 쿨타임 없음(보통·어려움 모드). 서식지 최대 6단계 업그레이드. 인연 시스템. 우파루마운틴 IP 후속작.',
         target: '10-30대 남녀. 캐주얼 수집·육성 게임 선호. 힐링+꾸미기 유저. 우파루마운틴 추억 유저.',
         motivation: '귀여운 우파루 수집·조합 욕구. 마을 꾸미기 힐링. 속성 상성 전략 전투. 도감 완성 성취감. 인연 시스템.',
@@ -591,14 +598,21 @@ function init() {
     const model = localStorage.getItem('adhook3_model');
     if (model) document.getElementById('modelSelect').value = model;
 
-    // Game grid
-    document.getElementById('gameGrid').innerHTML =
-        Object.entries(GAMES).map(([id, g]) =>
+    // Game grid — grouped by category
+    const categories = ['포커', '고스톱', 'RPG'];
+    document.getElementById('gameGrid').innerHTML = categories.map(cat => {
+        const games = Object.entries(GAMES).filter(([, g]) => g.category === cat);
+        const cards = games.map(([id, g]) =>
             `<div class="game-card" data-id="${id}" onclick="selectGame('${id}')">
                 <span class="g-icon">${g.icon}</span>
                 <span class="g-name">${g.name}</span>
             </div>`
         ).join('');
+        return `<div class="game-category-row">
+            <div class="game-cat-label">${cat}</div>
+            <div class="game-cat-cards">${cards}</div>
+        </div>`;
+    }).join('');
 
     // Campaign pills
     document.getElementById('campaignPills').innerHTML =
