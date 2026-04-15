@@ -1345,14 +1345,14 @@ ${campaign.name}
       {
         "name": "밈 이름·유형",
         "direction": "이 소재에 구체적으로 적용하는 방법",
-        "namu_url": "https://namu.wiki/search?q=밈+이름+키워드",
+        "naver_url": "https://search.naver.com/search.naver?query=밈+이름+키워드",
         "kym_url": "https://knowyourmeme.com/search?q=meme+name+keyword",
         "yt_url": "https://www.youtube.com/results?search_query=밈+이름+검색어"
       },
       {
         "name": "밈 이름·유형 2",
         "direction": "적용 방법",
-        "namu_url": "https://namu.wiki/search?q=밈+이름+키워드",
+        "naver_url": "https://search.naver.com/search.naver?query=밈+이름+키워드",
         "kym_url": "https://knowyourmeme.com/search?q=meme+name+keyword",
         "yt_url": "https://www.youtube.com/results?search_query=밈+이름+검색어"
       }
@@ -1388,7 +1388,7 @@ ${campaign.name}
 - trend_hook.trends는 반드시 2개 이상, 실제로 기획안에 적용한 트렌드만 기재
 - 자막 문구는 실제 광고에 바로 쓸 수 있는 완성형으로 작성
 - re_edit의 모든 타이밍은 반드시 초(s) 단위로 표기 (예: 0s~3s, 7s~12s)
-- meme_add.meme_refs의 namu_url은 반드시 https://namu.wiki/search?q=검색어 형식으로 작성 (한국 밈 레퍼런스), kym_url은 반드시 https://knowyourmeme.com/search?q=검색어 형식으로 작성 (직접 페이지 URL 절대 금지), yt_url은 반드시 https://www.youtube.com/results?search_query=검색어 형식으로 작성
+- meme_add.meme_refs의 naver_url은 반드시 https://search.naver.com/search.naver?query=검색어 형식으로 작성 (한국어 검색), kym_url은 반드시 https://knowyourmeme.com/search?q=검색어 형식으로 작성 (직접 페이지 URL 절대 금지), yt_url은 반드시 https://www.youtube.com/results?search_query=검색어 형식으로 작성
 - meme_add.emoji_sticker.items의 url은 반드시 https://emojipedia.org/[slug]/ 형식으로 작성 (예: fire → https://emojipedia.org/fire/)
 - cut_add의 모든 placement는 반드시 초(s) 단위로 표기
 - 소재 프레임이 있으면 영상 내용을 구체적으로 참조
@@ -1478,7 +1478,7 @@ function renderResults(d) {
                 <div class="info-row">
                     <div class="info-k">레퍼런스</div>
                     <div class="info-v" style="display:flex;gap:8px;flex-wrap:wrap">
-                        ${m.namu_url ? `<a href="${esc(m.namu_url)}" target="_blank" rel="noopener" style="color:#059669;text-decoration:none;background:rgba(5,150,105,0.07);border:1px solid #059669;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600">나무위키 ↗</a>` : ''}
+                        ${m.naver_url ? `<a href="${esc(m.naver_url)}" target="_blank" rel="noopener" style="color:#059669;text-decoration:none;background:rgba(5,150,105,0.07);border:1px solid #059669;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600">네이버 검색 ↗</a>` : ''}
                         ${m.kym_url  ? `<a href="${esc(m.kym_url)}"  target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;background:rgba(124,58,237,0.08);border:1px solid var(--accent);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600">KnowYourMeme ↗</a>` : ''}
                         ${m.yt_url   ? `<a href="${esc(m.yt_url)}"   target="_blank" rel="noopener" style="color:#dc2626;text-decoration:none;background:rgba(220,38,38,0.06);border:1px solid #dc2626;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600">YouTube 검색 ↗</a>` : ''}
                     </div>
