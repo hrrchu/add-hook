@@ -322,7 +322,7 @@
 
     <header>
         <h1>Add Hook — 표현 방식</h1>
-        <p>소재를 올리면 ① 자막 추가 · ② 영상 재편집 · ③ 컷 추가 · ④ 배너 영상화 기획안을 생성합니다</p>
+        <p>소재를 올리면 ① 자막 추가 · ② 영상 재편집 · ③ 밈 추가 · ④ 컷 추가 기획안을 생성합니다</p>
     </header>
 
     <!-- Settings -->
@@ -411,22 +411,22 @@
             <div class="result-body" id="resultEdit"></div>
         </div>
 
-        <!-- ③ 컷 추가 -->
+        <!-- ③ 밈 추가 -->
         <div class="result-block" id="tab3">
             <div class="result-header" onclick="toggleTab('tab3')">
                 <div class="result-num n3">③</div>
-                <div class="result-title">컷 추가</div>
+                <div class="result-title">밈 추가</div>
                 <span class="result-status" id="status3">생성 전</span>
                 <span class="result-chevron">▼</span>
             </div>
             <div class="result-body" id="resultCut"></div>
         </div>
 
-        <!-- ④ 배너 영상화 -->
+        <!-- ④ 컷 추가 -->
         <div class="result-block" id="tab4">
             <div class="result-header" onclick="toggleTab('tab4')">
                 <div class="result-num n4">④</div>
-                <div class="result-title">배너 영상화</div>
+                <div class="result-title">컷 추가</div>
                 <span class="result-status" id="status4">생성 전</span>
                 <span class="result-chevron">▼</span>
             </div>
@@ -1200,48 +1200,52 @@ ${campaign.name}
   "re_edit": {
     "highlight": {
       "recommendation": "어떤 장면·구간을 오프닝으로 배치할지 구체적으로",
-      "reason": "왜 이 장면이 훅으로 효과적인지",
+      "timing": "권장 구간을 초 단위로 명시 (예: 0s~3s 오프닝, 7s~12s 클라이맥스)",
+      "reason": "왜 이 구간이 훅으로 효과적인지",
       "tip": "편집 시 주의점 또는 추가 팁"
     },
     "creator_reaction": {
       "direction": "어떤 종류의 크리에이터 반응 컷이 필요한지",
+      "timing": "삽입 위치를 초 단위로 명시 (예: 오프닝 0s~2s, 클라이맥스 직후 15s)",
       "reason": "왜 이 반응 컷이 효과적인지",
       "tip": "촬영·섭외 방향 팁"
     }
   },
-  "cut_add": {
-    "meme": {
-      "format": "어떤 밈 포맷을 활용할지 (밈 이름/유형 명시)",
-      "direction": "구체적인 활용 방향",
-      "example": "실제 영상에서의 적용 예시"
-    },
-    "ai_moment": {
-      "concept": "어떤 비현실적 장면을 만들 것인지 한국어 개요",
-      "prompt_en": "Detailed English prompt for AI image/video generation (Midjourney/Sora/Runway compatible). Be specific about style, lighting, action, and mood.",
-      "style_note": "비주얼 스타일 방향 한 줄"
-    },
+  "meme_add": {
+    "meme_refs": [
+      {
+        "name": "밈 이름·유형",
+        "direction": "이 소재에 구체적으로 적용하는 방법",
+        "url": "https://knowyourmeme.com/memes/[slug] (실제 참고 가능한 URL)"
+      },
+      {
+        "name": "밈 이름·유형 2",
+        "direction": "적용 방법",
+        "url": "https://knowyourmeme.com/memes/[slug]"
+      }
+    ],
     "emoji_sticker": {
-      "timing": "어느 타이밍에 어떻게 삽입할지",
-      "items": ["이모지1", "이모지2", "이모지3", "이모지4"],
+      "timing": "어느 타이밍에 삽입할지 초 단위로 명시",
+      "items": [
+        { "emoji": "🔥", "url": "https://emojipedia.org/fire/" },
+        { "emoji": "😂", "url": "https://emojipedia.org/face-with-tears-of-joy/" },
+        { "emoji": "💥", "url": "https://emojipedia.org/collision/" },
+        { "emoji": "🎰", "url": "https://emojipedia.org/slot-machine/" }
+      ],
       "tip": "효과적인 활용 방법"
     }
   },
-  "banner_to_video": {
-    "motion": {
-      "elements": "배너 내 각 요소(배경/캐릭터/텍스트/CTA버튼 등)별 모션 방향",
-      "sequence": "요소 등장 순서 및 타이밍 (예: 0s 배경 fade-in → 0.5s 캐릭터 슬라이드인 → 1s 텍스트 팝업)",
-      "duration": "권장 영상 길이와 이유",
-      "ai_prompt_en": "English prompt for AI video generation (Runway Gen-3 / Kling / Pika). Include motion keywords, camera direction, and mood."
+  "cut_add": {
+    "ai_cut": {
+      "concept": "AI로 생성할 창의적·비현실적 장면 개요 (한국어)",
+      "prompt_en": "Detailed English prompt for AI generation (Midjourney/Sora/Runway). Specify style, lighting, action, mood.",
+      "style_note": "비주얼 스타일 방향 한 줄",
+      "placement": "영상 내 삽입 위치를 초 단위로 명시 (예: 오프닝 0s~2s, 클라이맥스 직전 10s)"
     },
-    "sound": {
-      "bgm": "BGM 장르·분위기·BPM 방향",
-      "vo_script": "VO 샘플 스크립트 1줄 — 실제 녹음 가능한 완성형 문장",
-      "sfx": "효과음 방향과 삽입 타이밍"
-    },
-    "copy_revision": {
-      "issues": "현재 배너 문구의 개선 포인트",
-      "headline": ["대안 헤드라인 1 (질문형)", "대안 헤드라인 2 (숫자/혜택 강조)", "대안 헤드라인 3 (감각/감정 자극)"],
-      "cta": "CTA 버튼 문구 제안"
+    "film_cut": {
+      "concept": "새로 촬영해서 추가할 컷 아이디어",
+      "execution": "촬영 방향·소품·표정·배경 구체적으로",
+      "placement": "영상 내 삽입 위치를 초 단위로 명시 (예: 중반부 8s~10s)"
     }
   }
 }
@@ -1249,6 +1253,10 @@ ${campaign.name}
 
 규칙:
 - 자막 문구는 실제 광고에 바로 쓸 수 있는 완성형으로 작성
+- re_edit의 모든 타이밍은 반드시 초(s) 단위로 표기 (예: 0s~3s, 7s~12s)
+- meme_add.meme_refs의 url은 반드시 knowyourmeme.com 또는 youtube.com 실제 URL로 작성
+- meme_add.emoji_sticker.items의 url은 반드시 https://emojipedia.org/[slug]/ 형식으로 작성 (예: fire → https://emojipedia.org/fire/)
+- cut_add의 모든 placement는 반드시 초(s) 단위로 표기
 - 소재 프레임이 있으면 영상 내용을 구체적으로 참조
 - 모든 항목은 ${game.name} · ${campaign.name} 맥락에 맞게`;
 }
@@ -1283,6 +1291,7 @@ function renderResults(d) {
             <div class="sub-label">하이라이트 구간 배치</div>
             ${makeInfoBlock([
                 { k: '추천', v: r.highlight.recommendation },
+                { k: '⏱ 타이밍', v: r.highlight.timing },
                 { k: '이유', v: r.highlight.reason },
                 { k: '팁',   v: r.highlight.tip }
             ])}
@@ -1291,100 +1300,92 @@ function renderResults(d) {
             <div class="sub-label">크리에이터 실제 반응</div>
             ${makeInfoBlock([
                 { k: '방향', v: r.creator_reaction.direction },
+                { k: '⏱ 타이밍', v: r.creator_reaction.timing },
                 { k: '이유', v: r.creator_reaction.reason },
                 { k: '팁',   v: r.creator_reaction.tip }
             ])}
         </div>`;
 
-    // ③ 컷 추가
-    const ct = d.cut_add;
-    const emojiItems = Array.isArray(ct.emoji_sticker.items) ? ct.emoji_sticker.items : [];
+    // ③ 밈 추가
+    const ma = d.meme_add;
+    const memeRefs = Array.isArray(ma.meme_refs) ? ma.meme_refs : [];
+    const emojiItems = Array.isArray(ma.emoji_sticker.items) ? ma.emoji_sticker.items : [];
 
     document.getElementById('resultCut').innerHTML = `
         <div class="sub">
-            <div class="sub-label">유행하는 밈</div>
-            ${makeInfoBlock([
-                { k: '포맷', v: ct.meme.format },
-                { k: '방향', v: ct.meme.direction },
-                { k: '예시', v: ct.meme.example }
-            ])}
-        </div>
-        <div class="sub">
-            <div class="sub-label">AI 비현실적 모먼트</div>
+            <div class="sub-label">밈 레퍼런스</div>
             <div class="info-block">
-                <div class="info-row">
-                    <div class="info-k">개념</div>
-                    <div class="info-v">${esc(ct.ai_moment.concept)}</div>
+            ${memeRefs.map((m, i) => `
+                <div class="info-row" style="${i > 0 ? 'border-top:1px solid var(--border);margin-top:10px;padding-top:10px' : ''}">
+                    <div class="info-k">밈 ${i + 1}</div>
+                    <div class="info-v"><strong>${esc(m.name)}</strong></div>
                 </div>
                 <div class="info-row">
-                    <div class="info-k">스타일</div>
-                    <div class="info-v">${esc(ct.ai_moment.style_note)}</div>
+                    <div class="info-k">적용 방법</div>
+                    <div class="info-v">${esc(m.direction)}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-k">생성 프롬프트</div>
-                    <div class="prompt-box">${esc(ct.ai_moment.prompt_en)}</div>
-                    <div class="btn-copy-prompt" onclick="copy('${escAttr(ct.ai_moment.prompt_en)}')">📋 프롬프트 복사</div>
+                    <div class="info-k">레퍼런스</div>
+                    <div class="info-v"><a href="${esc(m.url)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;word-break:break-all">${esc(m.url)}</a></div>
                 </div>
+            `).join('')}
             </div>
         </div>
         <div class="sub">
             <div class="sub-label">이모지 / 스티커</div>
             <div class="info-block">
                 <div class="info-row">
-                    <div class="info-k">타이밍</div>
-                    <div class="info-v">${esc(ct.emoji_sticker.timing)}</div>
+                    <div class="info-k">⏱ 타이밍</div>
+                    <div class="info-v">${esc(ma.emoji_sticker.timing)}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-k">추천</div>
-                    <div class="emoji-row">${emojiItems.map(e =>
-                        `<span class="emoji-chip" onclick="copy('${escAttr(e)}')" title="클릭해서 복사">${esc(e)}</span>`
-                    ).join('')}</div>
+                    <div class="emoji-row">${emojiItems.map(item => {
+                        const emoji = typeof item === 'object' ? item.emoji : item;
+                        const url   = typeof item === 'object' ? item.url   : null;
+                        return `<span class="emoji-chip" title="클릭해서 복사" onclick="copy('${escAttr(emoji)}')">${esc(emoji)}</span>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--accent);margin-right:8px;vertical-align:middle" title="Emojipedia에서 다운로드">↗</a>` : ''}`;
+                    }).join('')}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-k">팁</div>
-                    <div class="info-v">${esc(ct.emoji_sticker.tip)}</div>
+                    <div class="info-v">${esc(ma.emoji_sticker.tip)}</div>
                 </div>
             </div>
         </div>`;
 
-    // ④ 배너 영상화
-    const bv = d.banner_to_video;
-    if (bv) {
-        const headlines = Array.isArray(bv.copy_revision.headline) ? bv.copy_revision.headline : [];
+    // ④ 컷 추가
+    const cv = d.cut_add;
+    if (cv) {
         document.getElementById('resultBanner').innerHTML = `
         <div class="sub">
-            <div class="sub-label">모션 디렉션</div>
-            ${makeInfoBlock([
-                { k: '요소별', v: bv.motion.elements },
-                { k: '순서·타이밍', v: bv.motion.sequence },
-                { k: '권장 길이', v: bv.motion.duration }
-            ])}
-            <div style="margin-top:10px">
-                <div class="info-k" style="font-size:11px;font-weight:700;color:var(--accent2);letter-spacing:0.04em;margin-bottom:4px">AI 영상 생성 프롬프트</div>
-                <div class="prompt-box">${esc(bv.motion.ai_prompt_en)}</div>
-                <div class="btn-copy-prompt" onclick="copy('${escAttr(bv.motion.ai_prompt_en)}')">📋 프롬프트 복사</div>
+            <div class="sub-label">AI 생성 컷</div>
+            <div class="info-block">
+                <div class="info-row">
+                    <div class="info-k">개념</div>
+                    <div class="info-v">${esc(cv.ai_cut.concept)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">스타일</div>
+                    <div class="info-v">${esc(cv.ai_cut.style_note)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">⏱ 삽입 위치</div>
+                    <div class="info-v">${esc(cv.ai_cut.placement)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-k">생성 프롬프트</div>
+                    <div class="prompt-box">${esc(cv.ai_cut.prompt_en)}</div>
+                    <div class="btn-copy-prompt" onclick="copy('${escAttr(cv.ai_cut.prompt_en)}')">📋 프롬프트 복사</div>
+                </div>
             </div>
         </div>
         <div class="sub">
-            <div class="sub-label">사운드 디렉션</div>
+            <div class="sub-label">신규 촬영 컷</div>
             ${makeInfoBlock([
-                { k: 'BGM', v: bv.sound.bgm },
-                { k: 'VO 스크립트', v: bv.sound.vo_script },
-                { k: 'SFX', v: bv.sound.sfx }
+                { k: '아이디어', v: cv.film_cut.concept },
+                { k: '촬영 방향', v: cv.film_cut.execution },
+                { k: '⏱ 삽입 위치', v: cv.film_cut.placement }
             ])}
-        </div>
-        <div class="sub">
-            <div class="sub-label">문구 수정 가이드</div>
-            ${makeInfoBlock([{ k: '개선 포인트', v: bv.copy_revision.issues }])}
-            <div style="margin-top:10px">
-                <div class="info-k" style="font-size:11px;font-weight:700;color:var(--accent2);letter-spacing:0.04em;margin-bottom:6px">대안 헤드라인</div>
-                <div class="copy-list">${headlines.map(h =>
-                    `<div class="copy-item" onclick="copy('${escAttr(h)}')"><span>${esc(h)}</span><span class="ci-icon">📋</span></div>`
-                ).join('')}</div>
-            </div>
-            <div style="margin-top:10px">
-                ${makeInfoBlock([{ k: 'CTA 제안', v: bv.copy_revision.cta }])}
-            </div>
         </div>`;
     }
 
