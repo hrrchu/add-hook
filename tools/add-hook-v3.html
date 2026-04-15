@@ -131,6 +131,27 @@
         }
         .btn-remove:hover { background: rgba(220,38,38,0.06); }
 
+        /* Prompt hints */
+        .prompt-hints-card { margin-bottom: 14px; }
+        .prompt-hints-row { display: flex; gap: 10px; }
+        .prompt-hint-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .prompt-hint-label {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .prompt-hint-label.pos { color: #16a34a; }
+        .prompt-hint-label.neg { color: #dc2626; }
+        .prompt-hint-textarea {
+            width: 100%; min-height: 72px; resize: vertical;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 9px 12px;
+            color: var(--text); font-size: 13px; line-height: 1.5;
+            font-family: inherit; outline: none; transition: border-color 0.15s;
+        }
+        .prompt-hint-textarea:focus { border-color: var(--accent); }
+        .prompt-hint-textarea.pos:focus { border-color: #16a34a; }
+        .prompt-hint-textarea.neg:focus { border-color: #dc2626; }
+
         /* Generate */
         .btn-generate {
             width: 100%; padding: 14px; background: var(--accent); color: white;
@@ -370,6 +391,23 @@
     <div class="card">
         <div class="card-label">3 · 캠페인 유형</div>
         <div class="campaign-pills" id="campaignPills"></div>
+    </div>
+
+    <!-- Prompt Hints -->
+    <div class="card prompt-hints-card">
+        <div class="card-label">4 · 방향 힌트 (선택)</div>
+        <div class="prompt-hints-row">
+            <div class="prompt-hint-wrap">
+                <div class="prompt-hint-label pos">✅ Positive — 이렇게 해줘</div>
+                <textarea id="positivePrompt" class="prompt-hint-textarea pos"
+                    placeholder="예) 초반 3초 안에 숫자 훅 필수, 50대 여성 타겟, 치는 맛 라인 유지"></textarea>
+            </div>
+            <div class="prompt-hint-wrap">
+                <div class="prompt-hint-label neg">🚫 Negative — 이건 빼줘</div>
+                <textarea id="negativePrompt" class="prompt-hint-textarea neg"
+                    placeholder="예) 진지한 분위기 금지, 영어 카피 사용 금지, 카지노 연상 이미지 제외"></textarea>
+            </div>
+        </div>
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">기획안 생성</button>
@@ -1171,10 +1209,18 @@ function buildPromptText(game, campaign) {
         ? `위 이미지는 광고 소재 영상에서 추출한 ${state.frames.length}개 프레임입니다. 소재 내용을 반드시 분석하여 반영하세요.`
         : `(업로드된 소재 없음 — 게임 맥락 기반으로 생성하세요)`;
 
+    const pos = (document.getElementById('positivePrompt').value || '').trim();
+    const neg = (document.getElementById('negativePrompt').value || '').trim();
+    const hintBlock = (pos || neg) ? `
+## 방향 힌트 (최우선 반영)
+${pos ? `✅ 반드시 포함: ${pos}` : ''}
+${neg ? `🚫 반드시 제외: ${neg}` : ''}
+` : '';
+
     return `당신은 한게임 광고 소재 전문 기획자입니다.
 
 ${frameNote}
-
+${hintBlock}
 ## 게임
 - 게임명: ${game.name}
 - USP: ${game.usp}
