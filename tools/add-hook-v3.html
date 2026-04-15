@@ -251,6 +251,16 @@
             background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.2);
             border-radius: 4px; padding: 2px 8px;
         }
+        .wiki-section-title {
+            font-size: 11px; font-weight: 700; color: var(--text2);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            padding: 10px 16px 4px; border-top: 1px solid var(--border);
+            margin-top: 4px;
+        }
+        .wiki-section-title:first-child { border-top: none; margin-top: 0; padding-top: 6px; }
+        .wiki-pos { color: #15803d; }
+        .wiki-neg { color: #b91c1c; }
+        .wiki-caution { color: #92400e; background: rgba(251,191,36,0.08); border-radius: 4px; padding: 4px 6px; }
         .wiki-src:hover { background: rgba(37,99,235,0.12); }
 
         /* Error box */
@@ -375,6 +385,14 @@ const GAMES = {
         target: '30-50대 남성. 기존 PC포커 유저의 모바일 전환. 이동 중 포커 수요.',
         motivation: 'PC에서 하던 포커를 모바일에서 이어하기. PC유저와 같이 플레이. 기존 자산(골드/등급) 유지. 가챠·티켓 미니게임 보상.',
         keywords: '포커클래식, 모바일포커, 크로스플랫폼, PC연동, 7포커, 로우바둑이, 하이로우, 훌라, LA섯다, 티켓하우스, 가챠',
+        rating: 'iOS 4.6/5 (2,600개 리뷰)',
+        downloads: '수만명+ (4개 스토어)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: '길드전 1성 도시 신규 오픈 / 시즌 패스 개편 / 길드 채팅 기능 추가',
+        userPos: 'PC 계정과 완전 연동되는 편의성 호평 / 7종 게임 다양성 / 타임보너스 꼬박꼬박 지급',
+        userNeg: '백그라운드 앱 전환 시 게임 끊김 / 배터리 소모 심하다는 불만 / 일부 채널 매칭 대기 긺',
+        competitive: 'PC포커 본가 브랜드 계승이 핵심 USP / 로얄홀덤·한게임포커 대비 PC연동 단일 차별점 / 신규 유저보다 기존 PC포커 충성 유저 락인이 주목적',
+        adCaution: '19+ 필수 고지 / 실제 현금 환전·수익 암시 표현 금지 / 확률형 아이템(가챠) 광고 시 확률 공시 의무 / 과도한 게임 조장 문구 주의',
         sources: [
             { name: '한게임 공식 소개', url: 'https://eventzone.hangame.com/events/pokerclassic-introduce' },
             { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1582390510' },
@@ -387,6 +405,14 @@ const GAMES = {
         target: '30-50대 남성. PC 포커 장기 플레이어. 등급별 경쟁 선호. 청소년 이용불가.',
         motivation: '다양한 포커 변형 재미. 등급 상승 성취감. HPC 챔피언십 도전. 상위 10명 스페셜 효과 목표. 골드 보상. 커뮤니티.',
         keywords: 'PC포커, 7포커, 로우바둑이, 하이로우, 홀덤, HPC, 챔피언십, 시즌, 등급, BJ슈퍼매치, 액션아바타, 1조580억골드',
+        rating: 'PC 웹 서비스 (앱스토어 없음)',
+        downloads: 'PC 웹 기반 — 한게임 포털 계정 공용',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: 'HPC 시즌4 진행 중 / 포커Plus 구독 서비스 론칭 / VIP라운지 신규 개설 / 주간 골드 이벤트 강화',
+        userPos: '20년 역사의 정통 PC포커 브랜드 신뢰감 / HPC 챔피언십 규모와 긴장감 / 7종 변형 게임 선택폭',
+        userNeg: 'PC 전용이라 모바일 불가 — 접근성 한계 / 포커Plus 구독 과금 부담 / 신규 유저 진입장벽(고등급 상대)',
+        competitive: '포커클래식의 PC 본가이자 원조 / 모바일 포커 대비 PC 화면 몰입감·키보드 핫키 강점 / HPC 대회 규모가 경쟁사 대비 압도적',
+        adCaution: '19+ 필수 고지 / HPC 상금(1조580억 골드)은 인게임 가상화폐임을 명시 — 실제 현금 오인 방지 / 실제 수익·환전 암시 절대 금지',
         sources: [
             { name: '공식 홈페이지', url: 'https://poker.hangame.com/' },
             { name: 'HPC 시즌2 기사', url: 'https://www.khgames.co.kr/news/articleView.html?idxno=239237' },
@@ -395,10 +421,18 @@ const GAMES = {
     },
     hangame_holdem: {
         name: '한게임 홀덤', icon: '🂡',
-        usp: '2024.9월 구글 출시·2025.11월 iOS 출시 신작. 한국식 5인 홀덤(테이블당 최대 5인). 원터치 베팅으로 빠른 속도감. 캐주얼하면서도 홀덤의 심리전. 젊은 이용자층 호응.',
+        usp: '2024.9월 구글 출시·2025.11월 iOS 출시 신작. 한국식 5인 홀덤(테이블당 최대 5인). 원터치 베팅으로 빠른 속도감. 캐주얼하면서도 홀덤의 심리전. 챌린지배틀(500억골드 상금)·길드전(1조골드) 대규모 경쟁 콘텐츠.',
         target: '20-30대 남녀. 홀덤 입문자·캐주얼 유저. 빠르고 가벼운 게임 선호.',
         motivation: '빠른 한판 승부의 짜릿함. 원터치 베팅 간편함. 5인 소규모 심리전. 짧은 시간 부담 없이 플레이.',
-        keywords: '한게임홀덤, 5인홀덤, 한국식홀덤, 원터치베팅, 캐주얼홀덤, 심리전, 스피드홀덤',
+        keywords: '한게임홀덤, 5인홀덤, 한국식홀덤, 원터치베팅, 캐주얼홀덤, 심리전, 스피드홀덤, 챌린지배틀, 길드전',
+        rating: 'iOS 4.4/5 (298개 리뷰)',
+        downloads: '10,000+ (구글플레이)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: '챌린지배틀 500억골드 상금 이벤트 / 길드전 1조골드 보상 / 2025.11 iOS 정식 출시',
+        userPos: '"킬링타임으로 최고" 리뷰 다수 / 빠른 진행 속도 호평 / UI 직관적이고 깔끔',
+        userNeg: '출시 초기라 유저 풀이 아직 작음 — 매칭 대기 다소 발생 / 이벤트·콘텐츠 적음 / 고수와 초보 밸런스 이슈',
+        competitive: '로얄홀덤(TDA 정통룰 하드코어) 대비 캐주얼·빠른 판 포지션 / 5인 한국식 홀덤으로 차별화 / 신작이라 성장 여지 큼',
+        adCaution: '19+ 필수 고지 / 다운로드 수 10K+ 수준 — 과장 금지 / 챌린지배틀·길드전 상금은 인게임 가상화폐임을 명시 / 신작 특성상 서버/매칭 이슈 연상 표현 자제',
         sources: [
             { name: '출시 기사 (아주경제)', url: 'https://www.ajunews.com/view/20251121123319197' },
             { name: 'iOS 출시 기사 (게임톡)', url: 'https://www.gametoc.co.kr/news/articleView.html?idxno=104158' },
@@ -407,10 +441,18 @@ const GAMES = {
     },
     hangame_poker: {
         name: '한게임 포커', icon: '🃏',
-        usp: '2014년 출시. PC포커 20년 노하우 담은 모바일 포커. 7포커/로우바둑이/하이로우/텍사스홀덤 4종. 럭키랜드+코인경기장 통합(블랙잭/룰렛/다이사이/빅휠/슬롯/바카라 6종). 클럽 시스템(클럽미션·패스 전용 상품). 캐릭터 시스템. 모바일 전용 독립 게임.',
+        usp: '2014년 출시. PC포커 20년 노하우 담은 모바일 포커. 7포커/로우바둑이/하이로우/텍사스홀덤 4종. 럭키랜드+코인경기장 통합(블랙잭/룰렛/다이사이/빅휠/슬롯/바카라 6종). 클럽 시스템(클럽미션·패스 전용 상품). 캐릭터 시스템. 매주 3조칩 랭킹전.',
         target: '20-40대 남성. 모바일 포커+카지노 게임 병행 유저. 청소년 이용불가.',
         motivation: '다양한 포커 변형 재미. 럭키랜드 카지노 스릴. 클럽 미션 혜택. 이벤트 보상.',
-        keywords: '한게임포커, 7포커, 로우바둑이, 하이로우, 텍사스홀덤, 럭키랜드, 코인경기장, 블랙잭, 룰렛, 슬롯, 바카라, 클럽',
+        keywords: '한게임포커, 7포커, 로우바둑이, 하이로우, 텍사스홀덤, 럭키랜드, 코인경기장, 블랙잭, 룰렛, 슬롯, 바카라, 클럽, 레온',
+        rating: 'iOS 4.5/5 (14,000개) / 구글 4.3/5 (91,700개)',
+        downloads: '5,000,000+ (구글플레이)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: '복학생 레온 신규 캐릭터 추가 / 매주 3조칩 랭킹전 운영 / 럭키랜드 신규 미니게임 확장',
+        userPos: '럭키랜드 카지노 미니게임 다양성 호평 / 캐릭터 시스템 감성 / 이벤트·보상 풍성 / 5M+ 다운로드의 활발한 커뮤니티',
+        userNeg: '칩 사기·매크로 유저 신고 민원 다수 / 클럽 패스 과금 압박 / 과금 차이로 인한 게임 밸런스 불만',
+        competitive: '포커클래식 대비 모바일 전용 특화로 UX 최적화 / 럭키랜드 카지노 번들로 체류시간 우위 / 5M+ 다운로드는 경쟁사 대비 압도적 볼륨',
+        adCaution: '19+ 필수 고지 / 5M+ 다운로드 언급 가능(구글플레이 기준 명시) / 매크로·칩 사기 이슈 연상 표현 자제 / 실제 현금 수익 암시 절대 금지 / 클럽 패스 과금 유도 과장 주의',
         sources: [
             { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1471486284' },
             { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.nhnent.Qpoker' }
@@ -418,10 +460,18 @@ const GAMES = {
     },
     royal_holdem: {
         name: '로얄홀덤', icon: '👑',
-        usp: '구 더블에이포커. 2025.9월 UI/UX·속도·캐릭터·카드스킨 전면 리뉴얼. TDA룰 정통 텍사스홀덤. 3D 패쪼기 손맛. 토너먼트/홀덤/오마하/싯앤고 4종. HPT(Hangame Poker Tour) 오프라인 대회 — 총상금 10억원 상당 비트코인, 온라인 새틀라이트→오프라인 본선. 2026.3월 PC버전 정식 오픈(모바일 계정 연동·가로모드·핫키). 신규 캐릭터 메이.',
+        usp: '구 더블에이포커. 2025.9월 UI/UX·속도·캐릭터·카드스킨 전면 리뉴얼. TDA룰 정통 텍사스홀덤. 3D 패쪼기 손맛. 토너먼트/홀덤/오마하/싯앤고 4종. HPT(Hangame Poker Tour) 오프라인 대회 — 총상금 10억원 상당 비트코인. 2026.3월 PC버전 정식 오픈(모바일 계정 연동·가로모드·핫키). 신규 캐릭터 메이.',
         target: '20-40대 남녀. 홀덤 마니아. 토너먼트 경쟁 추구. PC+모바일 병행 유저.',
         motivation: '정통 TDA룰 실력 승부. 대규모 토너먼트 스릴. HPT 비트코인 상금 도전. 3D 패쪼기 손맛. 캐릭터·카드스킨 커스텀.',
         keywords: '로얄홀덤, TDA, 토너먼트, 바운티헌터, 싯앤고, 오마하, HPT, 새틀라이트, 비트코인상금, 3D패쪼기, 메이캐릭터, PC모바일연동',
+        rating: 'iOS 4.2/5 (599개 리뷰)',
+        downloads: '중간 규모 (수만명대 추정)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: 'v2.6.0 TDA룰 토너먼트 밸런싱 전면 수정 / HPT 오프라인 대회 비트코인 총상금 10억 / PC버전 2026.3 정식 오픈',
+        userPos: '"WPL포커보다 낫다" 리뷰 / 정통 TDA룰 신뢰감 / 3D 패쪼기 손맛 몰입감 / PC 연동 편리성',
+        userNeg: '봇 의혹 리뷰 다수(실제 여부 불명) / 신규 유저 진입장벽(토너먼트 경험치 필요) / 일부 서버 이슈 리뷰',
+        competitive: 'WPL포커(구 현대카드 포커클럽) 대비 TDA룰+HPT 오프라인 대회 강점 / 한게임홀덤(캐주얼) 대비 하드코어 하이엔드 포지션 / 비트코인 실물 상금으로 화제성 차별화',
+        adCaution: '19+ 필수 고지 / HPT 비트코인 상금은 온라인 새틀라이트 통과 조건 정확히 명시(오해 소지 차단) / 봇 의혹 연상 표현("자동", "AI" 등) 자제 / v2.6.0 밸런싱 수정 이전 구 영상 소재 사용 주의',
         sources: [
             { name: '리뉴얼 기사 (ZDNet)', url: 'https://zdnet.co.kr/view/?no=20250929094850' },
             { name: 'HPT 기사 (베타뉴스)', url: 'https://www.betanews.net/article/view/beta202512230006' },
@@ -431,10 +481,18 @@ const GAMES = {
     },
     sutda_matgo: {
         name: '섯다&맞고', icon: '🎴',
-        usp: '모바일 섯다 점유율 1위. 2장섯다/3장섯다/홀덤섯다/베짱섯다/맞고 5종. 독도수호전 — 10개 최상위 동호회, 총상금 10조쩐, 월~수 3일간 점령전. 독도공방전(수호전 우승자만). 지역 기반 동호회 시스템. 왕중왕전. 야시장 미니게임.',
+        usp: '모바일 섯다 점유율 1위. 2장섯다/3장섯다/홀덤섯다/베짱섯다/맞고 5종. 독도수호전 — 10개 최상위 동호회, 총상금 10조쩐, 월~수 3일간 점령전. 독도공방전(수호전 우승자만). 지역 기반 동호회 시스템. 왕중왕전. 야시장 미니게임. 수호령 콘텐츠.',
         target: '30-60대 남녀. 화투·섯다 문화에 친숙. 모바일 카드게임 유저. 지역 커뮤니티 소속감 선호.',
         motivation: '큰 판 긴장감과 눈치싸움. 손맛. 동호회·지역 경쟁. 독도수호전 점령 경쟁(10조쩐). 등급 상승.',
-        keywords: '섯다, 2장섯다, 3장섯다, 홀덤섯다, 베짱섯다, 맞고, 화투, 독도수호전, 독도공방전, 10조쩐, 동호회, 눈치싸움, 손맛, 왕중왕전',
+        keywords: '섯다, 2장섯다, 3장섯다, 홀덤섯다, 베짱섯다, 맞고, 화투, 독도수호전, 독도공방전, 10조쩐, 동호회, 눈치싸움, 손맛, 왕중왕전, 수호령',
+        rating: 'iOS 4.3/5 (30,000개) / 구글 4.0/5 (53,900개)',
+        downloads: '1,000,000+ (구글플레이)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: '수호령 콘텐츠 신규 추가 / 독도수호전 10조쩐 보상 업데이트 / 야시장 미니게임 확장',
+        userPos: '"긁는 맛·손맛 최고" 리뷰 압도적 / 동호회 커뮤니티 소속감 / 독도수호전 점령 경쟁의 긴장감 / 100만+ 다운로드 풍성한 매칭 풀',
+        userNeg: '확률 조작 의혹 리뷰 다수(iOS/구글 공통 — 실제 여부 불명) / 독도수호전 배팅 한도 불만 / 일부 유저 "광땡만 나온다" 불신',
+        competitive: '모바일 섯다 시장 1위 — 경쟁사 대비 100만+ 다운로드 압도 / 동호회·독도수호전이 타 섯다 앱에 없는 독점 콘텐츠 / 삥아리 마스코트 브랜드 인지도 높음',
+        adCaution: '19+ 필수 고지 / 확률 관련 수치 직접 언급 주의("당첨률", "광땡 확률" 등 — 확률 조작 의혹과 결부 리스크) / "조작", "랜덤", "확률" 연상 표현 금지 / 100만+ 다운로드 언급 가능(구글플레이 기준 명시)',
         sources: [
             { name: '독도수호전 기사', url: 'https://www.ftoday.co.kr/news/articleView.html?idxno=337515' },
             { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.NHNEnt.MSudda' },
@@ -443,10 +501,18 @@ const GAMES = {
     },
     shin_matgo: {
         name: '신맞고', icon: '🌟',
-        usp: '대한민국 원조 고스톱(2004년 오픈). 스피드모드(연출 간소화·속도UP). 카페 시스템(대전+채팅+실시간 랭킹). 주간 15만명 랭킹 챌린지. 접속만 해도 최대 10억냥. 친선대전(가족/친구). 마스코트 포키(멧돼지).',
+        usp: '대한민국 원조 고스톱(2004년 오픈). 스피드모드(연출 간소화·속도UP). 카페 시스템(대전+채팅+실시간 랭킹). 주간 15만명 랭킹 챌린지. 접속만 해도 최대 10억냥. 친선대전(가족/친구). 마스코트 포키(멧돼지). 구글 500만+ 다운로드.',
         target: '30-60대 남녀. 고스톱·맞고 유저. 무료 게임머니로 부담 없이 즐기려는 유저. 카페 소속감 선호.',
         motivation: '실시간 대전 박진감. 공정한 원조 룰로 실력 승부. 주간 랭킹 경쟁. 무료 게임머니(접속/출석/동영상). 지인과 친선대전.',
         keywords: '신맞고, 원조고스톱, 고스톱, 화투, 포키, 카페, 랭킹, 스피드모드, 친선대전, 10억냥, 출석부',
+        rating: 'iOS 3.3/5 (7,600개) / 구글 4.1/5 (137,000개)',
+        downloads: '5,000,000+ (구글플레이)',
+        ageRating: '19+ 청소년이용불가',
+        recentUpdate: '서버 안정화 패치 진행 / 스피드모드 연출 개선 / 카페 랭킹 시스템 고도화',
+        userPos: '"원조 고스톱" 브랜드 정통성 신뢰 / 500만+ 다운로드 매칭 풀 풍성 / 무료 게임머니 일일 지급 접근성 / 카페 커뮤니티 소속감',
+        userNeg: 'iOS 평점 3.3 — 서버 불안정·튕김 민원 다수 / 결제 유도 과하다는 불만 / iOS·구글 평점 격차(3.3 vs 4.1) 눈에 띔',
+        competitive: '500만+ 다운로드로 모바일 고스톱 시장 1위 볼륨 / iOS 평점 3.3이 광고 크리에이티브 취약점 — 스크린샷 노출 주의 / 스피드모드로 젊은 층 공략 여지',
+        adCaution: '19+ 필수 고지 / iOS 평점 3.3 앱스토어 스크린샷 소재에 포함되지 않도록 주의 / 서버 불안정 이슈 연상 표현 자제("끊김", "튕김" 등) / 결제 유도 과장 광고 금지 / 500만+ 다운로드 언급 가능(구글플레이 기준 명시)',
         sources: [
             { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1473424424' },
             { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.NHNEnt.NDuelgo' }
@@ -458,6 +524,14 @@ const GAMES = {
         target: '10-30대 남녀. 캐주얼 수집·육성 게임 선호. 힐링+꾸미기 유저. 우파루마운틴 추억 유저.',
         motivation: '귀여운 우파루 수집·조합 욕구. 마을 꾸미기 힐링. 속성 상성 전략 전투. 도감 완성 성취감. 인연 시스템.',
         keywords: '우파루, 수집, 조합, 소환, 육성, 마을꾸미기, 11속성, 매직속성, 큐피, 젤로, 상성, 원정, 인연시스템, 힐링',
+        rating: '구글 4.2/5 (5,300개 리뷰)',
+        downloads: '500,000+ (구글플레이)',
+        ageRating: '전체이용가 ★ (다른 7개 게임 모두 19+ — 유일한 전체이용가)',
+        recentUpdate: '신규 우파루 캐릭터 추가 / 매직 속성 6종(큐피/젤로/너구루/로디/샤키/수리) 업데이트',
+        userPos: '귀엽고 힐링되는 캐릭터 비주얼 호평 / 수집·조합 욕구 잘 자극 / 마을 꾸미기 자유도 / 우파루마운틴 추억 유저 재방문',
+        userNeg: '콘텐츠 업데이트 속도 느리다는 불만 / 에너지 시스템 답답 / 중반부 이후 과금 압박 느낌',
+        competitive: '전체이용가 유일 — 10대 청소년·가족 타겟 가능(다른 게임은 전부 19+) / 쿠키런·몬스터팜 등 수집게임 대비 우파루 IP 고유성 / 한게임 포트폴리오에서 캐주얼·힐링 포지션 단독 담당',
+        adCaution: '전체이용가 — 청소년 포함 전 연령 타겟 가능 / 수집·힐링·귀여움 소구 자유롭게 활용 가능 / 사행성·도박성 표현은 게임 장르와 무관하게 금지 / 확률형 조합(소환) 광고 시 확률 공시 의무 확인',
         sources: [
             { name: '매직속성 업데이트 기사', url: 'https://www.techm.kr/news/articleView.html?idxno=119458' },
             { name: '공식 홈페이지', url: 'https://wooparoo-odyssey.hangame.com/' },
@@ -558,11 +632,30 @@ function showGameWiki(id) {
         `<a class="wiki-src" href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`
     ).join('');
     document.getElementById('wikiBody').innerHTML = `
+        <div class="wiki-section-title">🎯 기획 핵심</div>
         <div class="wiki-row"><div class="wiki-k">USP</div><div class="wiki-v">${esc(g.usp)}</div></div>
         <div class="wiki-row"><div class="wiki-k">타겟</div><div class="wiki-v">${esc(g.target)}</div></div>
         <div class="wiki-row"><div class="wiki-k">모티베이션</div><div class="wiki-v">${esc(g.motivation)}</div></div>
         <div class="wiki-row"><div class="wiki-k">키워드</div><div class="wiki-v"><div class="wiki-kws">${kws}</div></div></div>
-        <div class="wiki-row"><div class="wiki-k">출처</div><div class="wiki-v"><div class="wiki-sources">${srcs}</div></div></div>
+
+        <div class="wiki-section-title">📊 앱 현황</div>
+        <div class="wiki-row"><div class="wiki-k">평점</div><div class="wiki-v">${esc(g.rating || '—')}</div></div>
+        <div class="wiki-row"><div class="wiki-k">다운로드</div><div class="wiki-v">${esc(g.downloads || '—')}</div></div>
+        <div class="wiki-row"><div class="wiki-k">이용등급</div><div class="wiki-v">${esc(g.ageRating || '—')}</div></div>
+        <div class="wiki-row"><div class="wiki-k">최근 업데이트</div><div class="wiki-v">${esc(g.recentUpdate || '—')}</div></div>
+
+        <div class="wiki-section-title">💬 유저 반응</div>
+        <div class="wiki-row"><div class="wiki-k">👍 긍정</div><div class="wiki-v wiki-pos">${esc(g.userPos || '—')}</div></div>
+        <div class="wiki-row"><div class="wiki-k">👎 부정</div><div class="wiki-v wiki-neg">${esc(g.userNeg || '—')}</div></div>
+
+        <div class="wiki-section-title">🏆 경쟁 포지셔닝</div>
+        <div class="wiki-row"><div class="wiki-k">포지션</div><div class="wiki-v">${esc(g.competitive || '—')}</div></div>
+
+        <div class="wiki-section-title">⚠️ 광고 주의사항</div>
+        <div class="wiki-row"><div class="wiki-k">주의</div><div class="wiki-v wiki-caution">${esc(g.adCaution || '—')}</div></div>
+
+        <div class="wiki-section-title">🔗 출처</div>
+        <div class="wiki-row"><div class="wiki-k">링크</div><div class="wiki-v"><div class="wiki-sources">${srcs}</div></div></div>
     `;
     document.getElementById('gameWiki').classList.add('show');
     // default: collapsed
