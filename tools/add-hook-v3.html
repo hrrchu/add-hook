@@ -220,6 +220,39 @@
         }
         .toast.show { opacity: 1; }
 
+        /* Game Wiki Panel */
+        .game-wiki {
+            display: none; margin-top: 14px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden;
+        }
+        .game-wiki.show { display: block; }
+        .wiki-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 11px 16px; cursor: pointer; user-select: none;
+            border-bottom: 1px solid var(--border);
+        }
+        .wiki-header-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+        .wiki-toggle { font-size: 11px; color: var(--accent2); font-weight: 600; }
+        .wiki-body { padding: 14px 16px; display: none; }
+        .wiki-body.open { display: block; }
+        .wiki-row { display: flex; gap: 8px; margin-bottom: 10px; font-size: 12px; line-height: 1.6; }
+        .wiki-row:last-child { margin-bottom: 0; }
+        .wiki-k { color: var(--accent2); font-weight: 700; min-width: 52px; flex-shrink: 0; padding-top: 1px; }
+        .wiki-v { color: var(--text); }
+        .wiki-kws { display: flex; flex-wrap: wrap; gap: 4px; }
+        .wiki-kw {
+            background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 4px; padding: 1px 7px; font-size: 11px; color: var(--accent2);
+        }
+        .wiki-sources { display: flex; flex-wrap: wrap; gap: 6px; }
+        .wiki-src {
+            font-size: 11px; color: var(--blue); text-decoration: none;
+            background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.2);
+            border-radius: 4px; padding: 2px 8px;
+        }
+        .wiki-src:hover { background: rgba(37,99,235,0.12); }
+
         /* Error box */
         .error-box {
             display: none; background: #fef2f2; border: 1px solid #fca5a5;
@@ -258,6 +291,13 @@
     <div class="card">
         <div class="card-label">1 · 게임 선택</div>
         <div class="game-grid" id="gameGrid"></div>
+        <div class="game-wiki" id="gameWiki">
+            <div class="wiki-header" onclick="toggleWiki()">
+                <div class="wiki-header-left"><span id="wikiIcon"></span><span id="wikiName"></span> 정보</div>
+                <span class="wiki-toggle" id="wikiToggle">▼ 펼치기</span>
+            </div>
+            <div class="wiki-body" id="wikiBody"></div>
+        </div>
     </div>
 
     <!-- Step 2: Upload -->
@@ -329,14 +369,101 @@
 <script>
 // ===================== DATA =====================
 const GAMES = {
-    poker_classic: { name: '포커 클래식', icon: '🎰', usp: 'PC포커 모바일 버전, PC-모바일 크로스플랫폼 통합플레이, 게임머니/마일리지 PC 완전 연동, 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종+슬롯, 모바일 전용 가챠 프라이즈, 일일 타임 보너스', target: '30-50대 남성, 기존 PC포커 유저의 모바일 전환', motivation: 'PC에서 하던 포커를 모바일에서 이어하기, PC유저와 같이 플레이, 기존 자산(골드/등급) 유지', keywords: '포커클래식, 모바일포커, 크로스플랫폼, PC연동, 7포커' },
-    pc_poker:       { name: 'PC포커', icon: '💻', usp: '한게임 최장수 원조 PC 포커, 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종, HPC 시즌제 챔피언십(총상금 1조골드), 블루~챔피언 등급 채널, 길드전, VIP 라운지', target: '30-50대 남성, 등급별 경쟁 선호 장기 플레이어', motivation: '다양한 포커 변형 재미, 등급 상승 성취감, HPC 챔피언십 도전, 상위100명 스페셜 효과', keywords: 'PC포커, 7포커, HPC, 챔피언십, 길드전, VIP, 등급' },
-    hangame_holdem: { name: '한게임 홀덤', icon: '🂡', usp: '2025.9월 신작, 한국식 5인 홀덤, 원터치 베팅 빠른 속도감, 캐주얼하면서 심리전의 긴장감, 짧은 시간 한판 승부', target: '20-30대 남녀, 홀덤 입문자·캐주얼 유저', motivation: '빠른 한판의 짜릿함, 원터치 베팅 간편함, 5인 소규모 심리전', keywords: '한게임홀덤, 5인홀덤, 원터치베팅, 캐주얼홀덤, 심리전' },
-    hangame_poker:  { name: '한게임 포커', icon: '🃏', usp: '7포커/로우바둑이/하이로우/텍사스홀덤 4종, 럭키랜드+코인경기장(블랙잭/룰렛/슬롯/바카라 통합), 클럽 시스템, 모바일 전용 독립 게임', target: '20-40대 남성, 모바일 포커+카지노 게임 병행 유저', motivation: '다양한 포커 변형, 럭키랜드 카지노 스릴, 클럽 미션 보상', keywords: '한게임포커, 7포커, 로우바둑이, 럭키랜드, 슬롯, 바카라' },
-    royal_holdem:   { name: '로얄홀덤', icon: '👑', usp: '2025.9월 리뉴얼, TDA룰 정통 텍사스홀덤, 화려한 3D그래픽+패쪼기 손맛, 토너먼트/홀덤/오마하/싯앤고, HPT 오프라인 대회(총상금 10억), PC+모바일 지원', target: '20-40대 남녀, 홀덤 마니아, 토너먼트 경쟁 추구', motivation: '정통 TDA룰 실력 승부, 대규모 토너먼트 스릴, HPT 오프라인 도전, 3D 패쪼기 손맛', keywords: '로얄홀덤, TDA, 토너먼트, 바운티헌터, HPT, 오마하, 3D패쪼기' },
-    sutda_matgo:    { name: '섯다&맞고', icon: '🎴', usp: '모바일 섯다 점유율 1위, 2장·3장·홀덤·베짱섯다+맞고 5종, 독도수호전/공방전(최상위 점령전), 동호회 시스템, 왕중왕전', target: '30-60대 남녀, 화투·섯다 문화에 친숙한 유저', motivation: '큰 판 긴장감과 눈치싸움, 동호회·지역 경쟁, 토너먼트 도전', keywords: '섯다, 맞고, 화투, 독도수호전, 동호회, 눈치싸움, 손맛' },
-    shin_matgo:     { name: '신맞고', icon: '🌟', usp: '대한민국 원조 고스톱 2004년 오픈, 스피드모드, 카페 시스템, 주간 15만명 랭킹 챌린지, 접속만 해도 최대 10억냥, 친선대전', target: '30-60대 남녀, 고스톱·맞고 유저', motivation: '실시간 대전 박진감, 공정한 룰, 주간 랭킹 경쟁, 무료 게임머니, 지인과 친선대전', keywords: '신맞고, 원조고스톱, 포키, 카페, 랭킹, 스피드모드, 10억냥' },
-    uparu_odyssey:  { name: '우파루 오딧세이', icon: '🐾', usp: '500종+ 우파루 수집·육성·조합, 11가지 속성 상성, 마을 꾸미기 힐링, 속성 덱 전략 전투, 우파루마운틴 IP 후속작', target: '10-30대 남녀, 캐주얼 수집·육성 게임 선호', motivation: '귀여운 우파루 수집·조합 욕구, 마을 꾸미기 힐링, 도감 완성 성취감', keywords: '우파루, 수집, 조합, 소환, 마을꾸미기, 11속성, 힐링' }
+    poker_classic: {
+        name: '포커 클래식', icon: '🎰',
+        usp: 'PC포커의 모바일 버전. PC-모바일 크로스플랫폼 통합 플레이(같은 게임룸). 게임머니·회원제·마일리지 PC 완전 연동. 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종+슬롯(블랙잭/바카라/룰렛). 모바일 전용 가챠(티켓하우스 매지컬 체인지). 일일 타임 보너스. 원스토어·구글플레이·앱스토어·갤럭시스토어 4개 채널 지원.',
+        target: '30-50대 남성. 기존 PC포커 유저의 모바일 전환. 이동 중 포커 수요.',
+        motivation: 'PC에서 하던 포커를 모바일에서 이어하기. PC유저와 같이 플레이. 기존 자산(골드/등급) 유지. 가챠·티켓 미니게임 보상.',
+        keywords: '포커클래식, 모바일포커, 크로스플랫폼, PC연동, 7포커, 로우바둑이, 하이로우, 훌라, LA섯다, 티켓하우스, 가챠',
+        sources: [
+            { name: '한게임 공식 소개', url: 'https://eventzone.hangame.com/events/pokerclassic-introduce' },
+            { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1582390510' },
+            { name: '네이버 게임라운지', url: 'https://game.naver.com/lounge/HANGAME_POKER_CLASSIC_with_PC/home' }
+        ]
+    },
+    pc_poker: {
+        name: 'PC포커', icon: '💻',
+        usp: '한게임 최장수 원조 PC 포커. 7포커/로우바둑이/하이로우/홀덤/맞포커/파티훌라/LA섯다 7종. 블루·골드채널 등급 시스템(시니어→영웅→세미프로→프로→챔피언). HPC(한게임포커챔피언십) 시즌제 정기 대회 — 총상금 1조580억 골드, 상위 50명 골드 지급, 상위 10명 인게임 액자효과+전용 액션아바타, 참가자 전원 액션아바타. BJ 슈퍼매치. 스피드/자유/친구 채널.',
+        target: '30-50대 남성. PC 포커 장기 플레이어. 등급별 경쟁 선호. 청소년 이용불가.',
+        motivation: '다양한 포커 변형 재미. 등급 상승 성취감. HPC 챔피언십 도전. 상위 10명 스페셜 효과 목표. 골드 보상. 커뮤니티.',
+        keywords: 'PC포커, 7포커, 로우바둑이, 하이로우, 홀덤, HPC, 챔피언십, 시즌, 등급, BJ슈퍼매치, 액션아바타, 1조580억골드',
+        sources: [
+            { name: '공식 홈페이지', url: 'https://poker.hangame.com/' },
+            { name: 'HPC 시즌2 기사', url: 'https://www.khgames.co.kr/news/articleView.html?idxno=239237' },
+            { name: 'HPC 시즌4 기사', url: 'https://www.joongangenews.com/news/articleView.html?idxno=460285' }
+        ]
+    },
+    hangame_holdem: {
+        name: '한게임 홀덤', icon: '🂡',
+        usp: '2024.9월 구글 출시·2025.11월 iOS 출시 신작. 한국식 5인 홀덤(테이블당 최대 5인). 원터치 베팅으로 빠른 속도감. 캐주얼하면서도 홀덤의 심리전. 젊은 이용자층 호응.',
+        target: '20-30대 남녀. 홀덤 입문자·캐주얼 유저. 빠르고 가벼운 게임 선호.',
+        motivation: '빠른 한판 승부의 짜릿함. 원터치 베팅 간편함. 5인 소규모 심리전. 짧은 시간 부담 없이 플레이.',
+        keywords: '한게임홀덤, 5인홀덤, 한국식홀덤, 원터치베팅, 캐주얼홀덤, 심리전, 스피드홀덤',
+        sources: [
+            { name: '출시 기사 (아주경제)', url: 'https://www.ajunews.com/view/20251121123319197' },
+            { name: 'iOS 출시 기사 (게임톡)', url: 'https://www.gametoc.co.kr/news/articleView.html?idxno=104158' },
+            { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.nhn.holdem' }
+        ]
+    },
+    hangame_poker: {
+        name: '한게임 포커', icon: '🃏',
+        usp: '2014년 출시. PC포커 20년 노하우 담은 모바일 포커. 7포커/로우바둑이/하이로우/텍사스홀덤 4종. 럭키랜드+코인경기장 통합(블랙잭/룰렛/다이사이/빅휠/슬롯/바카라 6종). 클럽 시스템(클럽미션·패스 전용 상품). 캐릭터 시스템. 모바일 전용 독립 게임.',
+        target: '20-40대 남성. 모바일 포커+카지노 게임 병행 유저. 청소년 이용불가.',
+        motivation: '다양한 포커 변형 재미. 럭키랜드 카지노 스릴. 클럽 미션 혜택. 이벤트 보상.',
+        keywords: '한게임포커, 7포커, 로우바둑이, 하이로우, 텍사스홀덤, 럭키랜드, 코인경기장, 블랙잭, 룰렛, 슬롯, 바카라, 클럽',
+        sources: [
+            { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1471486284' },
+            { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.nhnent.Qpoker' }
+        ]
+    },
+    royal_holdem: {
+        name: '로얄홀덤', icon: '👑',
+        usp: '구 더블에이포커. 2025.9월 UI/UX·속도·캐릭터·카드스킨 전면 리뉴얼. TDA룰 정통 텍사스홀덤. 3D 패쪼기 손맛. 토너먼트/홀덤/오마하/싯앤고 4종. HPT(Hangame Poker Tour) 오프라인 대회 — 총상금 10억원 상당 비트코인, 온라인 새틀라이트→오프라인 본선. 2026.3월 PC버전 정식 오픈(모바일 계정 연동·가로모드·핫키). 신규 캐릭터 메이.',
+        target: '20-40대 남녀. 홀덤 마니아. 토너먼트 경쟁 추구. PC+모바일 병행 유저.',
+        motivation: '정통 TDA룰 실력 승부. 대규모 토너먼트 스릴. HPT 비트코인 상금 도전. 3D 패쪼기 손맛. 캐릭터·카드스킨 커스텀.',
+        keywords: '로얄홀덤, TDA, 토너먼트, 바운티헌터, 싯앤고, 오마하, HPT, 새틀라이트, 비트코인상금, 3D패쪼기, 메이캐릭터, PC모바일연동',
+        sources: [
+            { name: '리뉴얼 기사 (ZDNet)', url: 'https://zdnet.co.kr/view/?no=20250929094850' },
+            { name: 'HPT 기사 (베타뉴스)', url: 'https://www.betanews.net/article/view/beta202512230006' },
+            { name: 'PC버전 오픈 기사', url: 'https://www.khgames.co.kr/news/articleView.html?idxno=302791' },
+            { name: 'App Store', url: 'https://apps.apple.com/kr/app/id6443477650' }
+        ]
+    },
+    sutda_matgo: {
+        name: '섯다&맞고', icon: '🎴',
+        usp: '모바일 섯다 점유율 1위. 2장섯다/3장섯다/홀덤섯다/베짱섯다/맞고 5종. 독도수호전 — 10개 최상위 동호회, 총상금 10조쩐, 월~수 3일간 점령전. 독도공방전(수호전 우승자만). 지역 기반 동호회 시스템. 왕중왕전. 야시장 미니게임.',
+        target: '30-60대 남녀. 화투·섯다 문화에 친숙. 모바일 카드게임 유저. 지역 커뮤니티 소속감 선호.',
+        motivation: '큰 판 긴장감과 눈치싸움. 손맛. 동호회·지역 경쟁. 독도수호전 점령 경쟁(10조쩐). 등급 상승.',
+        keywords: '섯다, 2장섯다, 3장섯다, 홀덤섯다, 베짱섯다, 맞고, 화투, 독도수호전, 독도공방전, 10조쩐, 동호회, 눈치싸움, 손맛, 왕중왕전',
+        sources: [
+            { name: '독도수호전 기사', url: 'https://www.ftoday.co.kr/news/articleView.html?idxno=337515' },
+            { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.NHNEnt.MSudda' },
+            { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1471942989' }
+        ]
+    },
+    shin_matgo: {
+        name: '신맞고', icon: '🌟',
+        usp: '대한민국 원조 고스톱(2004년 오픈). 스피드모드(연출 간소화·속도UP). 카페 시스템(대전+채팅+실시간 랭킹). 주간 15만명 랭킹 챌린지. 접속만 해도 최대 10억냥. 친선대전(가족/친구). 마스코트 포키(멧돼지).',
+        target: '30-60대 남녀. 고스톱·맞고 유저. 무료 게임머니로 부담 없이 즐기려는 유저. 카페 소속감 선호.',
+        motivation: '실시간 대전 박진감. 공정한 원조 룰로 실력 승부. 주간 랭킹 경쟁. 무료 게임머니(접속/출석/동영상). 지인과 친선대전.',
+        keywords: '신맞고, 원조고스톱, 고스톱, 화투, 포키, 카페, 랭킹, 스피드모드, 친선대전, 10억냥, 출석부',
+        sources: [
+            { name: 'App Store', url: 'https://apps.apple.com/kr/app/id1473424424' },
+            { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.NHNEnt.NDuelgo' }
+        ]
+    },
+    uparu_odyssey: {
+        name: '우파루 오딧세이', icon: '🐾',
+        usp: '500종+ 우파루 수집·육성·조합. 11가지 속성(숲/땅/불/얼음/천둥/물/빛/어둠/황금/바람+매직). 매직 속성 6종(큐피/젤로/너구루/로디/샤키/수리). 조합으로 새 우파루 소환. 마을 꾸미기 힐링. 원정 쿨타임 없음(보통·어려움 모드). 서식지 최대 6단계 업그레이드. 인연 시스템. 우파루마운틴 IP 후속작.',
+        target: '10-30대 남녀. 캐주얼 수집·육성 게임 선호. 힐링+꾸미기 유저. 우파루마운틴 추억 유저.',
+        motivation: '귀여운 우파루 수집·조합 욕구. 마을 꾸미기 힐링. 속성 상성 전략 전투. 도감 완성 성취감. 인연 시스템.',
+        keywords: '우파루, 수집, 조합, 소환, 육성, 마을꾸미기, 11속성, 매직속성, 큐피, 젤로, 상성, 원정, 인연시스템, 힐링',
+        sources: [
+            { name: '매직속성 업데이트 기사', url: 'https://www.techm.kr/news/articleView.html?idxno=119458' },
+            { name: '공식 홈페이지', url: 'https://wooparoo-odyssey.hangame.com/' },
+            { name: 'Google Play', url: 'https://play.google.com/store/apps/details?id=com.nhn.wooparoo.kr' }
+        ]
+    }
 };
 
 const CAMPAIGNS = [
@@ -416,6 +543,40 @@ function checkKey() {
 function selectGame(id) {
     state.game = id;
     document.querySelectorAll('.game-card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+    showGameWiki(id);
+}
+
+function showGameWiki(id) {
+    const g = GAMES[id];
+    if (!g) return;
+    document.getElementById('wikiIcon').textContent = g.icon + ' ';
+    document.getElementById('wikiName').textContent = g.name;
+    const kws = g.keywords.split(',').map(k =>
+        `<span class="wiki-kw">${k.trim()}</span>`
+    ).join('');
+    const srcs = (g.sources || []).map(s =>
+        `<a class="wiki-src" href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`
+    ).join('');
+    document.getElementById('wikiBody').innerHTML = `
+        <div class="wiki-row"><div class="wiki-k">USP</div><div class="wiki-v">${esc(g.usp)}</div></div>
+        <div class="wiki-row"><div class="wiki-k">타겟</div><div class="wiki-v">${esc(g.target)}</div></div>
+        <div class="wiki-row"><div class="wiki-k">모티베이션</div><div class="wiki-v">${esc(g.motivation)}</div></div>
+        <div class="wiki-row"><div class="wiki-k">키워드</div><div class="wiki-v"><div class="wiki-kws">${kws}</div></div></div>
+        <div class="wiki-row"><div class="wiki-k">출처</div><div class="wiki-v"><div class="wiki-sources">${srcs}</div></div></div>
+    `;
+    document.getElementById('gameWiki').classList.add('show');
+    // default: collapsed
+    const body = document.getElementById('wikiBody');
+    const toggle = document.getElementById('wikiToggle');
+    body.classList.remove('open');
+    toggle.textContent = '▼ 펼치기';
+}
+
+function toggleWiki() {
+    const body = document.getElementById('wikiBody');
+    const toggle = document.getElementById('wikiToggle');
+    const isOpen = body.classList.toggle('open');
+    toggle.textContent = isOpen ? '▲ 접기' : '▼ 펼치기';
 }
 function selectCampaign(id) {
     state.campaign = id;
