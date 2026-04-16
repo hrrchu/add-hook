@@ -1415,7 +1415,7 @@ async function callClaude(apiKey, model, game, campaign) {
             'content-type': 'application/json',
             'anthropic-dangerous-direct-browser-access': 'true'
         },
-        body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+        body: JSON.stringify({ model, max_tokens: 8096, messages: [{ role: 'user', content }] })
     });
     if (!res.ok) {
         const err = await res.text().catch(() => '');
@@ -1441,7 +1441,7 @@ async function callGemini(apiKey, model, game, campaign) {
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts }],
-                generationConfig: { maxOutputTokens: 4096 }
+                generationConfig: { maxOutputTokens: 8096 }
             })
         }
     );
@@ -1468,7 +1468,7 @@ async function callOpenAI(apiKey, model, game, campaign) {
             'Authorization': 'Bearer ' + apiKey,
             'content-type': 'application/json'
         },
-        body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: 'user', content }] })
+        body: JSON.stringify({ model, max_tokens: 8096, messages: [{ role: 'user', content }] })
     });
     if (!res.ok) {
         const err = await res.text().catch(() => '');
@@ -1649,18 +1649,25 @@ ${campaign.name}
 }
 
 function parseJSON(text) {
+    // 1) ```json ... ``` 블록
     try {
         const m = text.match(/```json\s*([\s\S]*?)\s*```/);
-        return JSON.parse(m ? m[1] : text);
-    } catch (e) {
-        console.error('Parse error', e);
-        return null;
-    }
+        if (m) return JSON.parse(m[1]);
+    } catch {}
+    // 2) 텍스트 그대로 JSON
+    try { return JSON.parse(text); } catch {}
+    // 3) 첫 { ... } 블록 추출
+    try {
+        const m = text.match(/\{[\s\S]*\}/);
+        if (m) return JSON.parse(m[0]);
+    } catch {}
+    console.error('[parseJSON] 파싱 실패. 원문:', text.slice(0, 300));
+    return null;
 }
 
 // ===================== RENDER =====================
 function renderResults(d) {
-    if (!d) { toast('결과 파싱 실패. 다시 시도해주세요.'); return; }
+    if (!d) { showError('JSON 파싱 실패. F12 콘솔에서 원문을 확인하거나 다시 시도해주세요.'); return; }
 
     // ① 자막 추가 — 트렌드 배지 + 카피
     const th = d.trend_hook;
