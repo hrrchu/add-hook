@@ -114,6 +114,16 @@
             font-size: 12px; color: var(--text2); display: flex; align-items: center;
             gap: 8px; margin-bottom: 8px;
         }
+        /* Preview view toggle */
+        .view-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+        .view-btn {
+            padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+            border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* Grid view */
         .preview-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .preview-frame {
             position: relative; border-radius: 8px; overflow: hidden;
@@ -124,6 +134,28 @@
             position: absolute; bottom: 0; left: 0; right: 0;
             background: rgba(0,0,0,0.55); color: white; font-size: 10px;
             padding: 2px 6px; text-align: center;
+
+        /* Script view */
+        .script-view { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .script-row {
+            display: grid; grid-template-columns: 36px 52px 130px 1fr 1fr;
+            align-items: stretch; border-bottom: 1px solid var(--border);
+        }
+        .script-row:last-child { border-bottom: none; }
+        .script-row.script-header { background: var(--surface2); font-size: 10px; font-weight: 700; color: var(--text2); letter-spacing: 0.04em; }
+        .script-cell {
+            padding: 7px 8px; font-size: 12px; color: var(--text);
+            border-right: 1px solid var(--border); display: flex; align-items: center;
+        }
+        .script-cell:last-child { border-right: none; }
+        .script-cell.center { justify-content: center; }
+        .script-cell img { width: 120px; height: 68px; object-fit: cover; border-radius: 4px; }
+        .script-input {
+            width: 100%; height: 100%; min-height: 52px; border: none; background: transparent;
+            font-size: 12px; color: var(--text); font-family: inherit; resize: none; outline: none;
+            line-height: 1.5; padding: 0;
+        }
+        .script-input::placeholder { color: #c4b5fd; }
         }
         .btn-remove {
             background: none; border: 1px solid var(--border); color: var(--red);
@@ -1103,21 +1135,58 @@ function extractFrames(file) {
 
 function showPreview(frames) {
     const pa = document.getElementById('previewArea');
-    const grid = frames.length > 0
+
+    const gridHTML = frames.length > 0
         ? `<div class="preview-grid">${frames.map(f =>
             `<div class="preview-frame">
                 <img src="data:image/jpeg;base64,${f.b64}" alt="${f.label}">
                 <div class="frame-label">${f.label}</div>
             </div>`
           ).join('')}</div>`
+        : '<div style="font-size:12px;color:var(--text2)">프레임 없음</div>';
+
+    const scriptRows = frames.length > 0
+        ? frames.map((f, i) =>
+            `<div class="script-row">
+                <div class="script-cell center" style="font-weight:700;color:var(--text2)">S${i+1}</div>
+                <div class="script-cell center" style="color:var(--text2)">${f.label}</div>
+                <div class="script-cell" style="padding:6px 8px"><img src="data:image/jpeg;base64,${f.b64}" alt="S${i+1}"></div>
+                <div class="script-cell"><textarea class="script-input" placeholder="자막 / 카피"></textarea></div>
+                <div class="script-cell"><textarea class="script-input" placeholder="비고 (BGM·SFX·모션 등)"></textarea></div>
+            </div>`
+          ).join('')
         : '';
+
     pa.innerHTML = `
         <div class="preview-meta">
             ✅ ${esc(state.mediaName)}
             <button class="btn-remove" onclick="removeUpload()">✕ 제거</button>
         </div>
-        ${grid}
+        <div class="view-toggle">
+            <button class="view-btn active" id="btnGrid"   onclick="switchView('grid')">🎬 프리뷰</button>
+            <button class="view-btn"        id="btnScript" onclick="switchView('script')">📋 스크립트</button>
+        </div>
+        <div id="viewGrid">${gridHTML}</div>
+        <div id="viewScript" style="display:none">
+            <div class="script-view">
+                <div class="script-row script-header">
+                    <div class="script-cell center">씬</div>
+                    <div class="script-cell center">타임</div>
+                    <div class="script-cell center">썸네일</div>
+                    <div class="script-cell">자막 / 카피</div>
+                    <div class="script-cell">비고</div>
+                </div>
+                ${scriptRows}
+            </div>
+        </div>
     `;
+}
+
+function switchView(mode) {
+    document.getElementById('viewGrid').style.display   = mode === 'grid'   ? '' : 'none';
+    document.getElementById('viewScript').style.display = mode === 'script' ? '' : 'none';
+    document.getElementById('btnGrid').classList.toggle('active',   mode === 'grid');
+    document.getElementById('btnScript').classList.toggle('active', mode === 'script');
 }
 
 function removeUpload() {
