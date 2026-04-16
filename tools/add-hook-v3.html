@@ -1187,9 +1187,10 @@ function delScriptLine(btn) {
 }
 
 async function autoTranscribe(file) {
-    const provider = currentProvider();
-    const apiKey   = document.getElementById('apiKey').value.trim();
-    if (!apiKey) return;
+    const provider   = currentProvider();
+    const apiKey     = document.getElementById('apiKey').value.trim();
+    const geminiKey  = localStorage.getItem('adhook3_key_gemini') || '';
+    if (!apiKey && !geminiKey) return;
 
     const inputs = document.querySelectorAll('.script-line-input');
     if (!inputs.length) return;
@@ -1208,7 +1209,10 @@ async function autoTranscribe(file) {
     inputs.forEach(inp => { inp.placeholder = '🔍 분석 중...'; inp.disabled = true; });
 
     try {
-        if (provider === 'gemini') {
+        // Gemini 키가 있으면 항상 Gemini 우선 (OCR 품질 우수 + 무료)
+        if (geminiKey) {
+            await autoTranscribeGemini(file, geminiKey, inputs, fillInputs);
+        } else if (provider === 'gemini') {
             await autoTranscribeGemini(file, apiKey, inputs, fillInputs);
         } else {
             await autoTranscribeVision(provider, apiKey, fillInputs);
