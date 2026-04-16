@@ -1321,10 +1321,41 @@ ${campaign.name}
     "summary": "이번 기획안 전체에 반영한 트렌드 흐름 한 줄 요약"
   },
   "caption": {
-    "random_question": ["문구1", "문구2", "문구3"],
-    "number_hook": ["문구1", "문구2", "문구3"],
-    "review_quote": ["문구1", "문구2", "문구3"],
-    "teaser": ["문구1", "문구2", "문구3"]
+    "negation_twist": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "이 카테고리를 실제 광고에 적용한 구체적 예시 한 줄",
+      "user_reaction": "이 훅을 보는 유저의 심리·반응 한 줄"
+    },
+    "specific_number": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    },
+    "target_audience": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    },
+    "random_question": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    },
+    "secret_insider": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    },
+    "teaser": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    },
+    "review_quote": {
+      "copies": ["문구1", "문구2", "문구3"],
+      "example": "실제 적용 예시",
+      "user_reaction": "유저 심리·반응"
+    }
   },
   "re_edit": {
     "highlight": {
@@ -1428,12 +1459,17 @@ function renderResults(d) {
         </div>` : '';
 
     const c = d.caption;
-    document.getElementById('resultCaption').innerHTML = trendBadgeHTML + [
-        makeCopySection('뜬금없는 질문', c.random_question),
-        makeCopySection('숫자 자극', c.number_hook),
-        makeCopySection('리뷰 / 댓글 인용', c.review_quote),
-        makeCopySection('예고', c.teaser)
-    ].join('');
+    const captionMap = [
+        { key: 'negation_twist',  label: '부정 / 반전' },
+        { key: 'specific_number', label: '구체 숫자' },
+        { key: 'target_audience', label: '대상 특정' },
+        { key: 'random_question', label: '뜬금없는 질문' },
+        { key: 'secret_insider',  label: '비밀 / 내부정보' },
+        { key: 'teaser',          label: '예고' },
+        { key: 'review_quote',    label: '리뷰 / 댓글 인용' },
+    ];
+    document.getElementById('resultCaption').innerHTML = trendBadgeHTML +
+        captionMap.map(({ key, label }) => makeCaptionSection(label, c[key])).join('');
 
     // ② 영상 재편집
     const r = d.re_edit;
@@ -1598,6 +1634,30 @@ function makeCopySection(title, items) {
         ? items.map(t => `<div class="copy-item" onclick="copy('${escAttr(t)}')"><span>${esc(t)}</span><span class="ci-icon">📋</span></div>`).join('')
         : '';
     return `<div class="sub"><div class="sub-label">${title}</div><div class="copy-list">${list}</div></div>`;
+}
+
+function makeCaptionSection(title, data) {
+    if (!data) return '';
+    const copies = Array.isArray(data.copies) ? data.copies : [];
+    const copyList = copies.map(t =>
+        `<div class="copy-item" onclick="copy('${escAttr(t)}')"><span>${esc(t)}</span><span class="ci-icon">📋</span></div>`
+    ).join('');
+    const meta = (data.example || data.user_reaction) ? `
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            ${data.example ? `<div style="flex:1;min-width:180px;background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:8px 10px">
+                <div style="font-size:10px;font-weight:700;color:#2563eb;letter-spacing:0.05em;margin-bottom:3px">예시</div>
+                <div style="font-size:12px;color:var(--text);line-height:1.5">${esc(data.example)}</div>
+            </div>` : ''}
+            ${data.user_reaction ? `<div style="flex:1;min-width:180px;background:rgba(234,88,12,0.05);border:1px solid rgba(234,88,12,0.15);border-radius:8px;padding:8px 10px">
+                <div style="font-size:10px;font-weight:700;color:#ea580c;letter-spacing:0.05em;margin-bottom:3px">유저 반응</div>
+                <div style="font-size:12px;color:var(--text);line-height:1.5">${esc(data.user_reaction)}</div>
+            </div>` : ''}
+        </div>` : '';
+    return `<div class="sub">
+        <div class="sub-label">${title}</div>
+        <div class="copy-list">${copyList}</div>
+        ${meta}
+    </div>`;
 }
 
 function makeInfoBlock(rows) {
