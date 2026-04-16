@@ -1147,121 +1147,199 @@ function showPreview(frames) {
 }
 
 async function autoTranscribe(file) {
-    const apiKey = localStorage.getItem('adhook3_key_gemini') || '';
-    if (!apiKey) return; // Gemini 키 없으면 조용히 스킵
+    const provider = currentProvider();
+    const apiKey   = document.getElementById('apiKey').value.trim();
+    if (!apiKey) return;
 
     const inputs = document.querySelectorAll('.script-line-input');
     if (!inputs.length) return;
 
-    // 로딩 상태
-    inputs.forEach(inp => { inp.placeholder = '🔍 자막·음성 분석 중...'; inp.disabled = true; });
+    const resetInputs = () => inputs.forEach(inp => {
+        inp.disabled = false;
+        inp.placeholder = '대사 / 자막을 입력하세요';
+    });
+
+    const fillInputs = results => inputs.forEach((inp, i) => {
+        inp.disabled = false;
+        inp.placeholder = '대사 / 자막을 입력하세요';
+        if (results[i]) inp.value = results[i];
+    });
+
+    inputs.forEach(inp => { inp.placeholder = '🔍 분석 중...'; inp.disabled = true; });
 
     try {
-        // ── 1. Gemini Files API 업로드 시작 ──
-        const mimeType = file.type || 'video/mp4';
-        const initRes = await fetch(
-            `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: {
-                    'X-Goog-Upload-Protocol': 'resumable',
-                    'X-Goog-Upload-Command': 'start',
-                    'X-Goog-Upload-Header-Content-Length': String(file.size),
-                    'X-Goog-Upload-Header-Content-Type': mimeType,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ file: { display_name: file.name } })
-            }
-        );
-        if (!initRes.ok) throw new Error('업로드 초기화 실패 ' + initRes.status);
-        const uploadUrl = initRes.headers.get('X-Goog-Upload-URL');
-        if (!uploadUrl) throw new Error('Upload URL 없음');
+        if (provider === 'gemini') {
+            await autoTranscribeGemini(file, apiKey, inputs, fillInputs);
+        } else {
+            await autoTranscribeVision(provider, apiKey, fillInputs);
+        }
+    } catch (err) {
+        resetInputs();
+        console.warn('[autoTranscribe]', err.message);
+    }
+}
 
-        // ── 2. 파일 업로드 ──
-        const uploadRes = await fetch(uploadUrl, {
+// Gemini: 영상 파일 통째로 → 자막 + 음성 전사
+async function autoTranscribeGemini(file, apiKey, inputs, fillInputs) {
+    const mimeType = file.type || 'video/mp4';
+
+    // 1. 업로드 초기화
+    const initRes = await fetch(
+        `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
+        {
             method: 'POST',
             headers: {
-                'X-Goog-Upload-Command': 'upload, finalize',
-                'X-Goog-Upload-Offset': '0',
-                'Content-Type': mimeType
+                'X-Goog-Upload-Protocol': 'resumable',
+                'X-Goog-Upload-Command': 'start',
+                'X-Goog-Upload-Header-Content-Length': String(file.size),
+                'X-Goog-Upload-Header-Content-Type': mimeType,
+                'Content-Type': 'application/json'
             },
-            body: file
-        });
-        if (!uploadRes.ok) throw new Error('업로드 실패 ' + uploadRes.status);
-        const fileInfo = await uploadRes.json();
-        const fileUri  = fileInfo.file.uri;
-        const fileName = fileInfo.file.name;
-
-        // ── 3. 파일 처리 완료 대기 (폴링) ──
-        inputs.forEach(inp => { inp.placeholder = '⏳ Gemini 처리 중...'; });
-        let ready = false;
-        for (let i = 0; i < 20; i++) {
-            await new Promise(r => setTimeout(r, 3000));
-            const poll = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${apiKey}`
-            );
-            const pd = await poll.json();
-            if (pd.state === 'ACTIVE') { ready = true; break; }
-            if (pd.state === 'FAILED') throw new Error('파일 처리 실패');
+            body: JSON.stringify({ file: { display_name: file.name } })
         }
-        if (!ready) throw new Error('처리 시간 초과');
+    );
+    if (!initRes.ok) throw new Error('업로드 초기화 실패 ' + initRes.status);
+    const uploadUrl = initRes.headers.get('X-Goog-Upload-URL');
+    if (!uploadUrl) throw new Error('Upload URL 없음');
 
-        // ── 4. 자막·음성 전사 요청 ──
-        inputs.forEach(inp => { inp.placeholder = '✍️ 텍스트 추출 중...'; });
-        const genRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { file_data: { mime_type: mimeType, file_uri: fileUri } },
-                            { text: `이 영상에서 (1) 화면에 보이는 자막/텍스트, (2) 성우·나레이션 음성 대사를 모두 추출해줘.
+    // 2. 파일 업로드
+    inputs.forEach(inp => { inp.placeholder = '📤 업로드 중...'; });
+    const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+            'X-Goog-Upload-Command': 'upload, finalize',
+            'X-Goog-Upload-Offset': '0',
+            'Content-Type': mimeType
+        },
+        body: file
+    });
+    if (!uploadRes.ok) throw new Error('업로드 실패 ' + uploadRes.status);
+    const fileInfo = await uploadRes.json();
+    const fileUri  = fileInfo.file.uri;
+    const fileName = fileInfo.file.name;
+
+    // 3. 처리 완료 대기
+    inputs.forEach(inp => { inp.placeholder = '⏳ Gemini 처리 중...'; });
+    let ready = false;
+    for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+        const poll = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${apiKey}`
+        );
+        const pd = await poll.json();
+        if (pd.state === 'ACTIVE') { ready = true; break; }
+        if (pd.state === 'FAILED') throw new Error('파일 처리 실패');
+    }
+    if (!ready) throw new Error('처리 시간 초과');
+
+    // 4. 전사 요청
+    inputs.forEach(inp => { inp.placeholder = '✍️ 텍스트 추출 중...'; });
+    const model = document.getElementById('modelSelect').value || 'gemini-2.0-flash-001';
+    const genRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [
+                    { file_data: { mime_type: mimeType, file_uri: fileUri } },
+                    { text: `이 영상에서 (1) 화면에 보이는 자막/텍스트, (2) 성우·나레이션 음성 대사를 모두 추출해줘.
 타임스탬프 순서대로 아래 JSON 배열 형식만 반환해. 다른 설명 없이 JSON만:
 [{"time_sec":1.2,"text":"텍스트 내용","type":"caption"},{"time_sec":3.0,"text":"음성 대사","type":"voice"}]
 type: 화면 자막이면 "caption", 음성이면 "voice". 텍스트 없는 구간은 제외.` }
-                        ]
-                    }],
-                    generationConfig: { maxOutputTokens: 2048 }
-                })
-            }
-        );
-        if (!genRes.ok) throw new Error('전사 요청 실패 ' + genRes.status);
-        const genData = await genRes.json();
-        const rawText = genData.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+                ]}],
+                generationConfig: { maxOutputTokens: 2048 }
+            })
+        }
+    );
+    if (!genRes.ok) throw new Error('전사 요청 실패 ' + genRes.status);
+    const genData = await genRes.json();
+    const rawText = genData.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
 
-        // ── 5. JSON 파싱 ──
-        let entries = [];
-        try {
-            const m = rawText.match(/\[[\s\S]*\]/);
-            entries = m ? JSON.parse(m[0]) : [];
-        } catch { entries = []; }
+    const entries = parseTranscriptJSON(rawText);
+    const frameData = state.frameData || [];
+    const result = frameData.map(f => {
+        const nearby = entries.filter(e => Math.abs(e.time_sec - f.timeSec) <= 2.5);
+        return [...new Set(nearby.map(e => e.text.trim()).filter(Boolean))].join(' / ');
+    });
+    fillInputs(result);
+}
 
-        // ── 6. 프레임 타임스탬프에 매핑 ──
-        const frameData = state.frameData || [];
-        const result = frameData.map(f => {
-            const t = f.timeSec;
-            const nearby = entries.filter(e => Math.abs(e.time_sec - t) <= 2.5);
-            if (!nearby.length) return '';
-            const unique = [...new Set(nearby.map(e => e.text.trim()).filter(Boolean))];
-            return unique.join(' / ');
+// Claude / GPT: 추출된 프레임 이미지로 화면 자막만 OCR
+async function autoTranscribeVision(provider, apiKey, fillInputs) {
+    const frames = state.frameData || [];
+    if (!frames.length) return;
+
+    const prompt = `아래 이미지들은 광고 영상에서 순서대로 추출한 프레임입니다.
+각 프레임에서 화면에 보이는 자막이나 텍스트를 그대로 읽어줘.
+텍스트가 없으면 빈 문자열로. 반드시 아래 JSON 배열만 반환해:
+["프레임1 텍스트","프레임2 텍스트","프레임3 텍스트"]
+배열 길이는 정확히 ${frames.length}개.`;
+
+    let rawText = '';
+
+    if (provider === 'claude') {
+        const model = document.getElementById('modelSelect').value;
+        const imageContent = frames.map(f => ({
+            type: 'image',
+            source: { type: 'base64', media_type: 'image/jpeg', data: f.b64 }
+        }));
+        imageContent.push({ type: 'text', text: prompt });
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: 1024,
+                messages: [{ role: 'user', content: imageContent }]
+            })
         });
+        if (!res.ok) throw new Error('Claude OCR 실패 ' + res.status);
+        const data = await res.json();
+        rawText = data.content[0].text;
 
-        // ── 7. 입력란 채우기 ──
-        inputs.forEach((inp, i) => {
-            inp.disabled = false;
-            inp.placeholder = '대사 / 자막을 입력하세요';
-            if (result[i]) inp.value = result[i];
-        });
+    } else { // openai
+        const model = document.getElementById('modelSelect').value;
+        const content = frames.map(f => ({
+            type: 'image_url',
+            image_url: { url: `data:image/jpeg;base64,${f.b64}` }
+        }));
+        content.push({ type: 'text', text: prompt });
 
-    } catch (err) {
-        inputs.forEach(inp => {
-            inp.disabled = false;
-            inp.placeholder = '대사 / 자막을 입력하세요';
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + apiKey, 'content-type': 'application/json' },
+            body: JSON.stringify({
+                model,
+                max_tokens: 1024,
+                messages: [{ role: 'user', content }]
+            })
         });
-        console.warn('[autoTranscribe]', err.message);
+        if (!res.ok) throw new Error('GPT OCR 실패 ' + res.status);
+        const data = await res.json();
+        rawText = data.choices[0].message.content;
     }
+
+    let arr = [];
+    try {
+        const m = rawText.match(/\[[\s\S]*\]/);
+        arr = m ? JSON.parse(m[0]) : [];
+    } catch { arr = []; }
+
+    fillInputs(arr);
+}
+
+function parseTranscriptJSON(raw) {
+    try {
+        const m = raw.match(/\[[\s\S]*\]/);
+        return m ? JSON.parse(m[0]) : [];
+    } catch { return []; }
 }
 
 function removeUpload() {
