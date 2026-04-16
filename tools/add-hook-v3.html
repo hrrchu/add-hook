@@ -137,6 +137,18 @@
             font-family: inherit; outline: none;
         }
         .script-line-input:focus { border-color: var(--accent); }
+        .btn-del-line {
+            background: none; border: none; color: var(--text2); cursor: pointer;
+            font-size: 14px; padding: 2px 4px; line-height: 1; opacity: 0.4; flex-shrink: 0;
+        }
+        .btn-del-line:hover { opacity: 1; color: var(--red); }
+        .btn-add-line {
+            margin-top: 6px; align-self: flex-start; background: none;
+            border: 1px dashed var(--border); border-radius: 6px;
+            padding: 4px 12px; font-size: 12px; color: var(--text2);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-add-line:hover { border-color: var(--accent); color: var(--accent); }
         .btn-remove {
             background: none; border: 1px solid var(--border); color: var(--red);
             border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px;
@@ -1128,12 +1140,14 @@ function showPreview(frames) {
         : '<div style="font-size:12px;color:var(--text2)">프레임 없음</div>';
 
     const scriptLines = frames.length > 0
-        ? `<div class="script-lines">${frames.map((f, i) =>
+        ? `<div class="script-lines" id="scriptLines">${frames.map((f, i) =>
             `<div class="script-line">
                 <span class="script-line-num">#${i + 1}</span>
                 <input class="script-line-input" type="text" placeholder="대사 / 자막을 입력하세요">
+                <button class="btn-del-line" onclick="delScriptLine(this)" title="삭제">✕</button>
             </div>`
-          ).join('')}</div>`
+          ).join('')}</div>
+          <button class="btn-add-line" onclick="addScriptLine()">+ 스크립트 추가</button>`
         : '';
 
     pa.innerHTML = `
@@ -1144,6 +1158,32 @@ function showPreview(frames) {
         ${gridHTML}
         ${scriptLines}
     `;
+}
+
+function addScriptLine() {
+    const container = document.getElementById('scriptLines');
+    if (!container) return;
+    const count = container.querySelectorAll('.script-line').length;
+    const div = document.createElement('div');
+    div.className = 'script-line';
+    div.innerHTML = `
+        <span class="script-line-num">#${count + 1}</span>
+        <input class="script-line-input" type="text" placeholder="대사 / 자막을 입력하세요">
+        <button class="btn-del-line" onclick="delScriptLine(this)" title="삭제">✕</button>`;
+    container.appendChild(div);
+    div.querySelector('input').focus();
+}
+
+function delScriptLine(btn) {
+    const line = btn.closest('.script-line');
+    if (!line) return;
+    line.remove();
+    // 번호 재정렬
+    const container = document.getElementById('scriptLines');
+    if (!container) return;
+    container.querySelectorAll('.script-line').forEach((el, i) => {
+        el.querySelector('.script-line-num').textContent = `#${i + 1}`;
+    });
 }
 
 async function autoTranscribe(file) {
