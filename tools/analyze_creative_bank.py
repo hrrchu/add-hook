@@ -36,7 +36,7 @@ GAME_FOLDER_MAP = {
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".avi", ".gif"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
-MODEL = "gemini-2.5-flash-preview-04-17"
+MODEL = "gemini-2.5-flash"
 REQUEST_INTERVAL = 4.0  # 무료 티어: 분당 15 요청
 # ─────────────────────────────────────────────────────────────
 
