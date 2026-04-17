@@ -918,7 +918,7 @@ const GAMES = {
         ]
     },
     uparu_odyssey: {
-        name: '우파루 오딧세이', icon: '🐾', category: 'RPG',
+        name: '우파루 오딧세이', icon: '🐾', category: '고스톱',
         usp: '500종+ 우파루 수집·육성·조합. 11가지 속성(숲/땅/불/얼음/천둥/물/빛/어둠/황금/바람+매직). 매직 속성 6종(큐피/젤로/너구루/로디/샤키/수리). 조합으로 새 우파루 소환. 마을 꾸미기 힐링. 원정 쿨타임 없음(보통·어려움 모드). 서식지 최대 6단계 업그레이드. 인연 시스템. 우파루마운틴 IP 후속작.',
         target: '10-30대 남녀. 캐주얼 수집·육성 게임 선호. 힐링+꾸미기 유저. 우파루마운틴 추억 유저.',
         motivation: '귀여운 우파루 수집·조합 욕구. 마을 꾸미기 힐링. 속성 상성 전략 전투. 도감 완성 성취감. 인연 시스템.',
@@ -1013,7 +1013,7 @@ function init() {
     onProviderChange(); // populates model dropdown + key field
 
     // Game grid — grouped by category
-    const categories = ['포커', '고스톱', 'RPG'];
+    const categories = ['포커', '고스톱'];
     document.getElementById('gameGrid').innerHTML = categories.map(cat => {
         const games = Object.entries(GAMES).filter(([, g]) => g.category === cat);
         const cards = games.map(([id, g]) =>
