@@ -1,10 +1,10 @@
 """
-Creative Bank 분석 스크립트
-E:\Creative bank 폴더의 영상들을 Gemini로 분석해 카피/비주얼 패턴 추출
+Creative Bank 분석 스크립트 (google-genai SDK 사용)
+E:\Creative bank 폴더의 영상/이미지를 Gemini로 분석해 카피/비주얼 패턴 추출
 
 결과:
-  E:\Creative bank\@분석자료\bank_analysis.json  <- Add Hook 툴에서 import
-  E:\Creative bank\@분석자료\processed_files.json <- 재실행 시 건너뛸 파일 목록
+  E:\Creative bank\@분석자료\bank_analysis.json
+  E:\Creative bank\@분석자료\processed_files.json
 """
 
 import os
@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-# ── 설정 ──────────────────────────────────────────────────────
+# ── 설정 ─────────────────────────────────────────────────────
 CREATIVE_BANK_PATH = Path("E:/Creative bank")
 OUTPUT_DIR         = CREATIVE_BANK_PATH / "@분석자료"
 OUTPUT_JSON        = OUTPUT_DIR / "bank_analysis.json"
@@ -36,6 +36,7 @@ GAME_FOLDER_MAP = {
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".avi", ".gif"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
+MODEL = "gemini-2.5-flash-preview-04-17"
 REQUEST_INTERVAL = 4.0  # 무료 티어: 분당 15 요청
 # ─────────────────────────────────────────────────────────────
 
@@ -96,23 +97,22 @@ def parse_json_array(raw):
     return []
 
 
-def wait_for_file(genai_module, file_obj, timeout=120):
-    start = time.time()
-    while True:
-        f = genai_module.get_file(file_obj.name)
-        if f.state.name == "ACTIVE":
-            return f
-        if f.state.name == "FAILED":
-            raise Exception("파일 처리 실패")
-        if time.time() - start > timeout:
-            raise Exception("처리 시간 초과")
-        time.sleep(3)
+def get_mime(file_path):
+    ext = file_path.suffix.lower()
+    return {
+        ".mp4": "video/mp4", ".mov": "video/quicktime",
+        ".webm": "video/webm", ".avi": "video/x-msvideo",
+        ".gif": "image/gif", ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg", ".png": "image/png",
+        ".webp": "image/webp"
+    }.get(ext, "application/octet-stream")
 
 
-def analyze_video(model, file_obj, filename):
-    prompt = f"""이 광고 영상({filename})을 분석해줘.
+def analyze_file(client, file_path, is_video):
+    if is_video:
+        prompt = f"""이 광고 영상({file_path.name})을 분석해줘.
 
-다음 내용을 추출해서 JSON 배열로만 반환해. 다른 설명 없이 JSON만:
+다음을 추출해서 JSON 배열로만 반환해. 다른 설명 없이 JSON만:
 - 화면에 표시된 자막/텍스트 (정확히)
 - 성우/나레이션 음성 대사 (정확히)
 - 핵심 카피 문구
@@ -120,55 +120,64 @@ def analyze_video(model, file_obj, filename):
 
 형식: ["카피1", "카피2", "비주얼 설명"]
 중복 제거, 빈 항목 제외. 최대 10개."""
-
-    try:
-        response = model.generate_content(
-            [file_obj, prompt],
-            generation_config={"max_output_tokens": 512}
-        )
-        return parse_json_array(response.text.strip())
-    except Exception as e:
-        print(f"    오류: {e}")
-        return []
-
-
-def analyze_image(genai_module, model, image_path):
-    prompt = """이 광고 이미지를 분석해줘.
-다음 내용을 JSON 배열로만 반환해 (다른 설명 없이):
+    else:
+        prompt = """이 광고 이미지를 분석해줘.
+다음을 JSON 배열로만 반환해 (다른 설명 없이):
 - 화면에 표시된 텍스트/카피 (정확히)
 - 비주얼 연출 특징 1줄 요약
 
 형식: ["카피1", "카피2", "비주얼 설명"]
 빈 항목 제외. 최대 8개."""
 
-    try:
-        img = genai_module.upload_file(str(image_path))
-        time.sleep(1)
-        response = model.generate_content(
-            [img, prompt],
-            generation_config={"max_output_tokens": 256}
+    mime = get_mime(file_path)
+
+    # 파일 업로드
+    print(f"    업로드 중...")
+    with open(file_path, "rb") as f:
+        uploaded = client.files.upload(
+            file=f,
+            config={"mime_type": mime, "display_name": file_path.name}
         )
-        entries = parse_json_array(response.text.strip())
-        try:
-            genai_module.delete_file(img.name)
-        except Exception:
-            pass
-        return entries
-    except Exception as e:
-        print(f"    오류: {e}")
-        return []
+
+    # 처리 완료 대기 (영상만)
+    if is_video:
+        print(f"    처리 대기 중...")
+        timeout = 120
+        start = time.time()
+        while uploaded.state.name == "PROCESSING":
+            if time.time() - start > timeout:
+                raise Exception("처리 시간 초과")
+            time.sleep(3)
+            uploaded = client.files.get(name=uploaded.name)
+        if uploaded.state.name == "FAILED":
+            raise Exception("파일 처리 실패")
+
+    # 분석
+    print(f"    분석 중...")
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=[uploaded, prompt]
+    )
+
+    # 파일 삭제
+    try:
+        client.files.delete(name=uploaded.name)
+    except Exception:
+        pass
+
+    return parse_json_array(response.text.strip())
 
 
 def main():
-    import google.generativeai as genai
+    from google import genai
 
     print("=" * 55)
     print("  Creative Bank 분석 스크립트")
+    print(f"  모델: {MODEL}")
     print("=" * 55)
 
     api_key = get_api_key()
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    client = genai.Client(api_key=api_key)
 
     processed = load_progress()
     bank = load_bank()
@@ -198,7 +207,7 @@ def main():
         print("새로 처리할 파일이 없습니다.")
         return
 
-    estimated_cost = total * 0.0012
+    estimated_cost = total * 0.0015
     print(f"예상 비용: ${estimated_cost:.2f} (약 {int(estimated_cost * 1400)}원)")
     print(f"예상 시간: 약 {int(total * REQUEST_INTERVAL / 60)}분\n")
     print("시작하려면 Enter, 취소는 Ctrl+C:")
@@ -209,19 +218,7 @@ def main():
         print(f"[{i}/{total}] {file_path.name[:55]}")
 
         try:
-            if is_video:
-                print(f"    업로드 중...")
-                uploaded = genai.upload_file(str(file_path))
-                uploaded = wait_for_file(genai, uploaded)
-                print(f"    분석 중...")
-                entries = analyze_video(model, uploaded, file_path.name)
-                try:
-                    genai.delete_file(uploaded.name)
-                except Exception:
-                    pass
-            else:
-                print(f"    이미지 분석 중...")
-                entries = analyze_image(genai, model, file_path)
+            entries = analyze_file(client, file_path, is_video)
 
             if entries:
                 if game_id not in bank:
@@ -233,6 +230,8 @@ def main():
             else:
                 print(f"    - 추출 없음")
 
+            errors = 0  # 성공하면 에러 카운터 리셋
+
         except KeyboardInterrupt:
             print("\n중단됨. 저장 중...")
             break
@@ -240,7 +239,7 @@ def main():
             print(f"    ERROR: {e}")
             errors += 1
             if errors > 10:
-                print("오류 10회 초과. 중단합니다.")
+                print("연속 오류 10회 초과. 중단합니다.")
                 break
 
         processed.add(rel_path)
@@ -248,7 +247,7 @@ def main():
         if i % 10 == 0:
             save_bank(bank)
             save_progress(processed)
-            print(f"    [중간저장 완료 - {i}/{total}]")
+            print(f"    [중간저장 - {i}/{total}]")
 
         time.sleep(REQUEST_INTERVAL)
 
