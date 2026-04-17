@@ -348,6 +348,58 @@
         .wiki-caution { color: #92400e; background: rgba(251,191,36,0.08); border-radius: 4px; padding: 4px 6px; }
         .wiki-src:hover { background: rgba(37,99,235,0.12); }
 
+        /* Copy Bank Editor */
+        .bank-section {
+            display: none; border-top: 1px solid var(--border);
+            padding: 14px 16px;
+        }
+        .bank-section.show { display: block; }
+        .bank-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .bank-title {
+            font-size: 11px; font-weight: 700; color: var(--text2);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .bank-count {
+            font-size: 11px; background: rgba(124,58,237,0.1);
+            color: var(--accent2); border-radius: 10px; padding: 1px 7px;
+            font-weight: 600;
+        }
+        .bank-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+        .bank-item {
+            display: flex; align-items: flex-start; gap: 6px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 7px; padding: 6px 10px;
+        }
+        .bank-item-text {
+            flex: 1; font-size: 12px; color: var(--text); line-height: 1.5;
+            word-break: break-all;
+        }
+        .bank-item-default {
+            font-size: 10px; color: var(--text2); flex-shrink: 0;
+            opacity: 0.5; margin-top: 2px;
+        }
+        .btn-del-bank {
+            background: none; border: none; color: var(--text2); cursor: pointer;
+            font-size: 13px; padding: 0 2px; opacity: 0.3; flex-shrink: 0; margin-top: 1px;
+        }
+        .btn-del-bank:hover { opacity: 1; color: var(--red); }
+        .bank-add-row { display: flex; gap: 6px; }
+        .bank-add-input {
+            flex: 1; padding: 6px 10px; border-radius: 7px;
+            border: 1px solid var(--border); background: var(--surface2);
+            color: var(--text); font-size: 12px; outline: none;
+        }
+        .bank-add-input:focus { border-color: var(--accent); }
+        .btn-add-bank {
+            padding: 6px 12px; border-radius: 7px; border: none; cursor: pointer;
+            background: var(--accent2); color: #fff; font-size: 12px; white-space: nowrap;
+        }
+        .btn-add-bank:hover { opacity: 0.85; }
+
         /* Download button */
         .btn-download {
             display: none; width: 100%; padding: 12px; margin-top: 10px;
@@ -459,6 +511,18 @@
                 <span class="wiki-toggle" id="wikiToggle">▼ 펼치기</span>
             </div>
             <div class="wiki-body" id="wikiBody"></div>
+            <div class="bank-section" id="bankSection">
+                <div class="bank-header">
+                    <div class="bank-title">📋 카피 뱅크 <span class="bank-count" id="bankCount">0</span></div>
+                </div>
+                <div class="bank-list" id="bankList"></div>
+                <div class="bank-add-row">
+                    <input type="text" id="bankAddInput" class="bank-add-input"
+                        placeholder="카피·비주얼 패턴 추가 (예: &quot;치는 맛&quot; 라인 — DSP 6종 배리에이션)"
+                        onkeydown="if(event.key==='Enter')addBankEntry()">
+                    <button class="btn-add-bank" onclick="addBankEntry()">+ 추가</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1087,10 +1151,76 @@ function onProviderChange() {
     checkKey();
 }
 
+/* ── Copy Bank ────────────────────────────────────────────── */
+function getBankKey(gameId) { return 'adhook3_bank_' + gameId; }
+
+function getBankEntries(gameId) {
+    const stored = localStorage.getItem(getBankKey(gameId));
+    if (stored !== null) {
+        try { return JSON.parse(stored); } catch { return []; }
+    }
+    // 첫 로드: 하드코딩된 creativeBank를 파싱해 초기값으로 사용
+    const raw = (GAMES[gameId] || {}).creativeBank || '';
+    if (!raw) return [];
+    // 파이프(|) 기준으로 섹션 분리 후 / 기준으로 항목 분리
+    const entries = raw.split('|').flatMap(section => {
+        const colonIdx = section.indexOf(':');
+        const items = colonIdx >= 0 ? section.slice(colonIdx + 1) : section;
+        return items.split('/').map(s => s.trim()).filter(Boolean);
+    }).filter(s => s.length > 1);
+    saveBankEntries(gameId, entries);
+    return entries;
+}
+
+function saveBankEntries(gameId, entries) {
+    localStorage.setItem(getBankKey(gameId), JSON.stringify(entries));
+}
+
+function renderBankEditor(gameId) {
+    const section = document.getElementById('bankSection');
+    const list = document.getElementById('bankList');
+    const countEl = document.getElementById('bankCount');
+    if (!section || !list) return;
+
+    const entries = getBankEntries(gameId);
+    countEl.textContent = entries.length;
+
+    list.innerHTML = entries.length === 0
+        ? '<div style="font-size:12px;color:var(--text2);padding:4px 0;opacity:0.6">아직 항목이 없습니다</div>'
+        : entries.map((e, i) =>
+            `<div class="bank-item">
+                <div class="bank-item-text">${esc(e)}</div>
+                <button class="btn-del-bank" onclick="delBankEntry(${i})" title="삭제">✕</button>
+            </div>`
+          ).join('');
+
+    section.classList.add('show');
+}
+
+function addBankEntry() {
+    const input = document.getElementById('bankAddInput');
+    const text = input.value.trim();
+    if (!text || !state.game) return;
+    const entries = getBankEntries(state.game);
+    entries.push(text);
+    saveBankEntries(state.game, entries);
+    input.value = '';
+    renderBankEditor(state.game);
+}
+
+function delBankEntry(idx) {
+    if (!state.game) return;
+    const entries = getBankEntries(state.game);
+    entries.splice(idx, 1);
+    saveBankEntries(state.game, entries);
+    renderBankEditor(state.game);
+}
+
 function selectGame(id) {
     state.game = id;
     document.querySelectorAll('.game-card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
     showGameWiki(id);
+    renderBankEditor(id);
 }
 
 function showGameWiki(id) {
@@ -1874,6 +2004,10 @@ ${game.userBehavior || '내부 데이터 참조'}
 
 ## 크리에이티브 뱅크 (검증된 패턴 — 이를 발전시키거나 새로운 방향 제안)
 ${game.creativeBank || '게임 맥락 기반으로 생성'}
+${(() => {
+    const userEntries = getBankEntries(game.id || state.game);
+    return userEntries.length ? `\n### 담당자 추가 검증 카피/패턴\n${userEntries.map((e,i) => `${i+1}. ${e}`).join('\n')}` : '';
+})()}
 
 ## 캠페인
 ${campaign.name}
