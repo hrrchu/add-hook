@@ -367,9 +367,65 @@
         .error-box.show { display: block; }
         .error-box strong { display: block; margin-bottom: 4px; font-size: 14px; }
 
+        /* Meme links */
+        .meme-input-row {
+            display: flex; gap: 6px; margin-bottom: 10px;
+        }
+        .meme-url-input {
+            flex: 2; padding: 7px 10px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--surface2);
+            color: var(--text); font-size: 12px; outline: none;
+        }
+        .meme-title-input {
+            flex: 1; padding: 7px 10px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--surface2);
+            color: var(--text); font-size: 12px; outline: none;
+        }
+        .meme-url-input:focus, .meme-title-input:focus { border-color: var(--accent); }
+        .btn-add-meme {
+            padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer;
+            background: var(--accent2); color: #fff; font-size: 12px; white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .btn-add-meme:hover { opacity: 0.85; }
+        .meme-list { display: flex; flex-direction: column; gap: 5px; }
+        .meme-item {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 7px 10px;
+            transition: border-color 0.15s;
+        }
+        .meme-item:hover { border-color: var(--accent); }
+        .meme-favicon {
+            width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0;
+            object-fit: contain;
+        }
+        .meme-link {
+            flex: 1; font-size: 12px; color: var(--blue); text-decoration: none;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .meme-link:hover { text-decoration: underline; }
+        .meme-tag {
+            font-size: 10px; background: rgba(124,58,237,0.08);
+            border: 1px solid rgba(124,58,237,0.18); color: var(--accent2);
+            border-radius: 4px; padding: 1px 6px; flex-shrink: 0;
+            max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .btn-del-meme {
+            background: none; border: none; color: var(--text2); cursor: pointer;
+            font-size: 14px; padding: 0 2px; opacity: 0.35; flex-shrink: 0;
+        }
+        .btn-del-meme:hover { opacity: 1; color: var(--red); }
+        .meme-empty {
+            font-size: 12px; color: var(--text2); text-align: center;
+            padding: 10px 0; opacity: 0.6;
+        }
+
         @media (max-width: 600px) {
             .settings-bar { flex-wrap: wrap; }
             .preview-frame img { width: 90px; height: 51px; }
+            .meme-input-row { flex-wrap: wrap; }
+            .meme-title-input { flex: 1 1 100%; }
         }
     </style>
 </head>
@@ -443,6 +499,17 @@
                     placeholder="예) 진지한 분위기 금지, 영어 카피 사용 금지, 카지노 연상 이미지 제외"></textarea>
             </div>
         </div>
+    </div>
+
+    <!-- Step 5: Meme Reference Links -->
+    <div class="card">
+        <div class="card-label">5 · 밈 레퍼런스 (선택) — AI 기획에 자동 반영</div>
+        <div class="meme-input-row">
+            <input type="url" id="memeUrlInput" class="meme-url-input" placeholder="https://..." onkeydown="if(event.key==='Enter')addMemeLink()">
+            <input type="text" id="memeTitleInput" class="meme-title-input" placeholder="제목 (선택)" onkeydown="if(event.key==='Enter')addMemeLink()">
+            <button class="btn-add-meme" onclick="addMemeLink()">+ 추가</button>
+        </div>
+        <div class="meme-list" id="memeList"></div>
     </div>
 
     <button class="btn-generate" id="generateBtn" onclick="generate()">기획안 생성</button>
@@ -919,6 +986,61 @@ function init() {
         if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
     input.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    // Meme links
+    renderMemeLinks();
+}
+
+/* ── Meme Reference Links ─────────────────────────────────── */
+function getMemeLinks() {
+    try { return JSON.parse(localStorage.getItem('adhook3_meme_links') || '[]'); } catch { return []; }
+}
+function saveMemeLinks(links) {
+    localStorage.setItem('adhook3_meme_links', JSON.stringify(links));
+}
+function renderMemeLinks() {
+    const links = getMemeLinks();
+    const el = document.getElementById('memeList');
+    if (!el) return;
+    if (links.length === 0) {
+        el.innerHTML = '<div class="meme-empty">아직 추가된 밈이 없습니다</div>';
+        return;
+    }
+    el.innerHTML = links.map((m, i) => {
+        const host = (() => { try { return new URL(m.url).hostname; } catch { return ''; } })();
+        const favicon = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=32` : '';
+        const displayTitle = m.title || m.url;
+        return `<div class="meme-item">
+            ${favicon ? `<img class="meme-favicon" src="${favicon}" onerror="this.style.display='none'" alt="">` : ''}
+            <a class="meme-link" href="${esc(m.url)}" target="_blank" rel="noopener" title="${esc(m.url)}">${esc(displayTitle)}</a>
+            ${m.title ? `<span class="meme-tag">${esc(host)}</span>` : ''}
+            <button class="btn-del-meme" onclick="delMemeLink(${i})" title="삭제">✕</button>
+        </div>`;
+    }).join('');
+}
+function addMemeLink() {
+    const urlEl = document.getElementById('memeUrlInput');
+    const titleEl = document.getElementById('memeTitleInput');
+    const url = urlEl.value.trim();
+    if (!url) { urlEl.focus(); return; }
+    const links = getMemeLinks();
+    links.push({ url, title: titleEl.value.trim() });
+    saveMemeLinks(links);
+    urlEl.value = '';
+    titleEl.value = '';
+    renderMemeLinks();
+}
+function delMemeLink(idx) {
+    const links = getMemeLinks();
+    links.splice(idx, 1);
+    saveMemeLinks(links);
+    renderMemeLinks();
+}
+function getMemeLinksBlock() {
+    const links = getMemeLinks();
+    if (links.length === 0) return '';
+    const items = links.map((m, i) => `${i + 1}. ${m.title ? m.title + ' — ' : ''}${m.url}`).join('\n');
+    return `\n## 밈 레퍼런스 (반드시 이 밈들의 포맷·정서를 분석해 기획안에 반영)\n${items}\n`;
 }
 
 function currentProvider() { return document.getElementById('providerSelect').value; }
@@ -1616,6 +1738,7 @@ ${scriptLines.join('\n')}
 ${pos ? `✅ 반드시 포함: ${pos}` : ''}
 ${neg ? `🚫 반드시 제외: ${neg}` : ''}
 ` : '';
+    const memeBlock = getMemeLinksBlock();
 
     return `당신은 한게임 광고 소재 전문 기획자입니다.
 
@@ -1653,7 +1776,7 @@ ${COMPETITIVE_CONTEXT}
 ${LEGAL_CONTEXT}
 
 ${COMMON_CREATIVE_PATTERNS}
-
+${memeBlock}
 ## 숏폼 훅 트렌드
 당신이 학습한 데이터 기준으로 TikTok·Instagram Reels·YouTube Shorts 광고에서 최근 유효한 훅 패턴 2~3개를 파악하고, 이번 기획안 전체에 반영하세요. 어떤 트렌드를 적용했는지 trend_hook 필드에 반드시 명시하세요.
 
