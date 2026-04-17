@@ -31,7 +31,7 @@ GAME_FOLDER_MAP = {
     "한게임 섯다&맞고": "sutda_matgo",
     "한게임 신맞고":    "shin_matgo",
     "한게임 포커":      "hangame_poker",
-    "한게임 홀덤":      "holdem",
+    "한게임 홀덤":      "hangame_holdem",
 }
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".avi", ".gif"}
